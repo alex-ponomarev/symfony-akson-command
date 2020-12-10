@@ -71,10 +71,10 @@ class ProductController extends AbstractController
         $entityManager->persist($product);
         $entityManager->flush();
 
-        return new Response(200);
+        return new Response(null,200);
     }
     /**
-     * @Route("/product",name="productPatch",methods={"PATCH"})
+     * @Route("/product",name="productPatch",methods={"PATCH","PUT"})
      * @param Request $request
      * @return Response
      */
@@ -90,7 +90,7 @@ class ProductController extends AbstractController
         $product->setCategory($data['category']);
         $entityManager->flush();
 
-        return new Response(200);
+        return new Response(null,200);
     }
     /**
      * @Route("/product/{id}",name="productDelete",methods={"DELETE"})
@@ -105,14 +105,23 @@ class ProductController extends AbstractController
         $entityManager->remove($product[0]);
         $entityManager->flush();
 
-        return new Response(200);
+        return new Response(null,200);
     }
 
+
+    public function productsChangeCategory($products,$trash,$_this)
+    {
+        foreach ($products as $product){
+            $product->setCategory($trash);
+            $entityManager = $_this->getDoctrine()->getManager();
+            $entityManager->flush();
+        }
+    }
 
     function toJSON($obj){
         $encoders = [new XmlEncoder(), new JsonEncoder()];
         $normalizers = [new ObjectNormalizer()];
         $serializer = new Serializer($normalizers, $encoders);
-        return $serializer->serialize($obj, 'json',['ignored_attributes' => ['product_relation','productRelation']]);
+        return $serializer->serialize($obj, 'json',['ignored_attributes' => ['product_relation','categoryParentRelation','productRelation']]);
     }
 }

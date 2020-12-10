@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use http\Env\Request;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -13,28 +14,28 @@ class DefaultController extends AbstractController
     /**
      * @Route("/index")
      */
-    public function index(): Response
+    public function index(Request $request): Response
     {
 
-        $entityManager = $this->getDoctrine()->getManager();
+        $data = json_decode($request->getContent(), true);
+        $validator = new Validator();
+        $validation = $validator->validate(
+            $data,
+            (object)[
+                "type" => "array",
+                "properties" => (object)[
+                    "new_layout" => (object)[
+                        "type"=> "string"
+                    ]
+                ],
+                "required" => [
+                    "new_layout"
+                ]
+            ]);
+        if(!$validator->isValid()){
+            // json is not valid do something
+        }
 
-       $product = new Product();
-        $product->setName('Samsung A5');
-        $product->setPrice(3000);
-
-
-
-       $repository = $this->getDoctrine()->getRepository(Category::class);
-
-        //$category = $repository->find(1);
-
-        //$product->setCategory($category);
-
-         $entityManager->persist($product);
-
-        // actually executes the queries (i.e. the INSERT query)
-        $entityManager->flush();
-
-        return new Response('Saved new product with id ');
+        return new Response('Index is work right ');
     }
 }
