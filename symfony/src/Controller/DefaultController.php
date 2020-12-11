@@ -2,28 +2,57 @@
 
 namespace App\Controller;
 
-use http\Env\Request;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Validator\Validation;
+
 //use App\Entity\Product;
-//se App\Entity\Category;
+//use App\Entity\Category;
 
 class DefaultController extends AbstractController
 {
+    protected $categoryJSON;
+
     /**
      * @Route("/index")
+     * @param Request $request
+     * @return Response
      */
     public function index(Request $request): Response
     {
+        /*   dump('THERE');
+           $data = json_decode($request->getContent(), true);
+           if($data === null){
+               return new Response('JSON not valid');
+           }
+          dump('json valid');
+           $validator = Validation::createValidator();
+           $validation = $validator->validate(
+               $data,
+               (object)[
+                   "name" => "string",
+                   "category" => "object",
+                   "count" => "integer"
+               ]);
 
-        $data = json_decode($request->getContent(), true);
+           if(!$validator->isValid()){
+               return new Response('Validator is false');
+           }
+       */
+        return new Response('Index is work right ');
+    }
+
+}
+/*
+$data = json_decode($request->getContent(), true);
         $validator = new Validator();
         $validation = $validator->validate(
             $data,
             (object)[
-                "type" => "array",
-                "properties" => (object)[
+                "name" => "array",
+                "category" => (object)[
                     "new_layout" => (object)[
                         "type"=> "string"
                     ]
@@ -32,10 +61,4 @@ class DefaultController extends AbstractController
                     "new_layout"
                 ]
             ]);
-        if(!$validator->isValid()){
-            // json is not valid do something
-        }
-
-        return new Response('Index is work right ');
-    }
-}
+ */
