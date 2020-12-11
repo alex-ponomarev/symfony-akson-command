@@ -3,13 +3,13 @@
 namespace App\Controller;
 
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\Validator\Validation;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 use App\Entity\Product;
 use App\Entity\Category;
+use App\Repository\CategoryRepository;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Symfony\Component\Serializer\Encoder\XmlEncoder;
 use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
@@ -17,6 +17,7 @@ use Symfony\Component\Serializer\Serializer;
 
 class CategoryController extends AbstractController
 {
+
     private $client;
 
     public function __construct(HttpClientInterface $client)
@@ -44,11 +45,11 @@ class CategoryController extends AbstractController
     {
         $id = $request->get('id');
         if(!($this->idValidation($id))){
-            return new Response(null,400);
+            return new Response('categoryGetByID',418);
         }
         $categoryFields = $this->getDoctrine()->getRepository(Category::class)->findOneBy(array('id' => $id));
         return new Response($this->toJSON($categoryFields));
-    }
+    }//httpclient
     /**
      * @Route("/category",name="categoryPost",methods={"POST"})
      * @param Request $request
@@ -57,7 +58,7 @@ class CategoryController extends AbstractController
     public function categoryPost(Request $request): Response
     {
         if(!$this->jsonValidation($request)){
-            return new Response(null,400);
+            return new Response('categoryPost',418);
         }
         $data=$request->toArray();
 
@@ -73,18 +74,22 @@ class CategoryController extends AbstractController
 
     }
     /**
-     * @Route("/category",name="categoryPatch",methods={"PATCH","PUT"})
+     * @Route("/category/{id}",name="categoryPatch",methods={"PATCH","PUT"})
      * @param Request $request
      * @return Response
      */
     public function categoryPatch(Request $request): Response
     {
+        $id = $request->get('id');
+        if(!($this->idValidation($id))){
+            return new Response('categoryPatch',418);
+        }
         if(!$this->jsonValidation($request)){
-            return new Response(null,400);
+            return new Response('categoryPatch',418);
         }
         $data=$request->toArray();
         $entityManager = $this->getDoctrine()->getManager();
-        $category = $this->getDoctrine()->getRepository(Category::class)->findOneBy(array('id' => $data['id']));
+        $category = $this->getDoctrine()->getRepository(Category::class)->findOneBy(array('id' => $id));
         $category->setName($data['name']);
         $category->setCategory($data["category"]);
         $category->setProductCount($data["count"]);
@@ -101,27 +106,42 @@ class CategoryController extends AbstractController
     {
         $id = $request->get('id');
         if(!($this->idValidation($id))){
-            return new Response(null,400);
+            return new Response('categoryDelete',418);
         }
-        $product = new ProductController();
         $entityManager = $this->getDoctrine()->getManager();
         $category = $this->getDoctrine()->getRepository(Category::class)->findOneBy(array('id' => $id));
-        $trash = $this->getDoctrine()->getRepository(Category::class)->findOneBy(array('id' => 0));
-        $products = $category->getProductRelation();
-        $product->productsChangeCategory($products,$trash,$this);
-
+        $this->categoryRemount($id);
 
         $entityManager->remove($category);
         $entityManager->flush();
-        return new Response(null,200);
-    }
-
-    function productDeleteResponse($json){
-
-
+        return new Response('Категория удалена, id нового родителя дочерней категории = 0',200);
     }
     function categoryRemount($id){
-
+        $catRep = new CategoryRepository();
+        $childCategory = $catRep->findOneByCategoryField($id);
+        $childCategory->setCategory(0);
+    }
+    /**
+     * @Route("/category/count_all/",name="categoryProductsCounter",methods={"PUT","PATCH"})
+     * @param Request $request
+     * @return Response
+     */
+    function categoryProductsCounter(Request $request){
+        $categoryFields = $this->getDoctrine()->getRepository(Category::class)->findAll();
+        foreach ($categoryFields as $category) {
+            $response = $this->client->request(
+                'GET',
+                'http://10.44.0.230:9191/product/category/'.$category->getId()
+            );
+            $statusCode = $response->getStatusCode();
+            if ($statusCode = $response->getStatusCode() != 200)
+                continue;
+            $content = json_decode($response->getContent(), true);
+            $category->setProductCount(count($content));
+            $entityManager = $this->getDoctrine()->getManager();
+            $entityManager->flush();
+        }
+        return new Response('Категории обновлены', 200);
     }
     function toJSON($obj): string
     {
@@ -156,4 +176,5 @@ class CategoryController extends AbstractController
         }
         return true;
     }
+
 }

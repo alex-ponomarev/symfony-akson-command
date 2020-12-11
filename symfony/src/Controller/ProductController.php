@@ -8,6 +8,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 use App\Entity\Product;
+use App\Repository\ProductRepository;
 use App\Entity\Category;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Symfony\Component\Serializer\Encoder\XmlEncoder;
@@ -44,14 +45,13 @@ class ProductController extends AbstractController
     /**
      * @Route("/product/category/{id}",name="productInCategoryGetByID",methods={"GET"})
      * @param Request $request
-     * @return Response
+     * @return JsonResponse
      */
     public function productInCategoryGetByID(Request $request): Response
     {
         $id = $request->get('id');
-        $category = $this->getDoctrine()->getRepository(Category::class)->findOneBy(array('id' => $id));
-        $categoryFields = $category->getProductRelation();
-        return new Response($this->toJSON($categoryFields));
+        $products = $this->getDoctrine()->getRepository(Product::class)->findByCategoryField($id);
+        return new Response($this->toJSON($products));
     }
     /**
      * @Route("/product",name="productPost",methods={"POST"})

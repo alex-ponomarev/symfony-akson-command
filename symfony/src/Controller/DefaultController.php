@@ -22,26 +22,7 @@ class DefaultController extends AbstractController
      */
     public function index(Request $request): Response
     {
-        /*   dump('THERE');
-           $data = json_decode($request->getContent(), true);
-           if($data === null){
-               return new Response('JSON not valid');
-           }
-          dump('json valid');
-           $validator = Validation::createValidator();
-           $validation = $validator->validate(
-               $data,
-               (object)[
-                   "name" => "string",
-                   "category" => "object",
-                   "count" => "integer"
-               ]);
 
-           if(!$validator->isValid()){
-               return new Response('Validator is false');
-           }
-       */
-        return new Response('Index is work right ');
     }
 
 }

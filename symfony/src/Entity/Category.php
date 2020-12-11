@@ -3,14 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\CategoryRepository;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Component\Serializer\Annotation\Ignore;
-use Symfony\Component\Serializer\Annotation\MaxDepth;
-use Symfony\Component\Validator\Constraints as Assert;
-use Symfony\Component\Validator\Constraints\PositiveOrZero;
-use Symfony\Component\Validator\Constraints\Regex;
+
 
 /**
  * @ORM\Entity(repositoryClass=CategoryRepository::class)
@@ -25,7 +19,6 @@ class Category
     private $id;
 
     /**
-   //  * @Regex("/^([а-яё\s]+|[a-z\s]+)$/iu")
      * @ORM\Column(type="string", length=255)
      */
     private $name;
@@ -33,7 +26,6 @@ class Category
     /**
      *
      * @ORM\Column(type="integer")
-   //  * @PositiveOrZero()
      */
     private $product_count;
 
