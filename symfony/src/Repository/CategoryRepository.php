@@ -18,7 +18,20 @@ class CategoryRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, Category::class);
     }
+    public function findByCategoryField($id)
+    {
+        try {
+            return $this->createQueryBuilder('p')
+                ->andWhere('p.category = :val')
+                ->setParameter('val', $id)
+                ->getQuery()
+                ->getResult();
+        }
+        catch (Exception $err){
+            $this->logger->error($err->getMessage());
 
+        }
+    }
     // /**
     //  * @return Category[] Returns an array of Category objects
     //  */
@@ -47,7 +60,7 @@ class CategoryRepository extends ServiceEntityRepository
         ;
     }
     */
-    public function findOneByCategoryField($value): ?Category
+   /* public function findOneByCategoryField($value): ?Category
     {
         return $this->createQueryBuilder('c')
             ->andWhere('c.category = :val')
@@ -55,5 +68,5 @@ class CategoryRepository extends ServiceEntityRepository
             ->getQuery()
             ->getOneOrNullResult()
             ;
-    }
+    }*/
 }

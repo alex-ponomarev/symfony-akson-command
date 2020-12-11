@@ -82,10 +82,10 @@ class CategoryController extends AbstractController
     {
         $id = $request->get('id');
         if(!($this->idValidation($id))){
-            return new Response('categoryPatch',418);
+            return new Response('categoryPatch get not valid id',418);
         }
         if(!$this->jsonValidation($request)){
-            return new Response('categoryPatch',418);
+            return new Response('categoryPatch get not valid json',418);
         }
         $data=$request->toArray();
         $entityManager = $this->getDoctrine()->getManager();
@@ -106,7 +106,7 @@ class CategoryController extends AbstractController
     {
         $id = $request->get('id');
         if(!($this->idValidation($id))){
-            return new Response('categoryDelete',418);
+            return new Response('categoryDelete get not valid id',418);
         }
         $entityManager = $this->getDoctrine()->getManager();
         $category = $this->getDoctrine()->getRepository(Category::class)->findOneBy(array('id' => $id));
@@ -114,19 +114,54 @@ class CategoryController extends AbstractController
 
         $entityManager->remove($category);
         $entityManager->flush();
-        return new Response('Категория удалена, id нового родителя дочерней категории = 0',200);
+        return new Response('Категория удалена, id нового родителя дочерней категории(если таковая существовала) = 0',200);
     }
     function categoryRemount($id){
-        $catRep = new CategoryRepository();
-        $childCategory = $catRep->findOneByCategoryField($id);
-        $childCategory->setCategory(0);
+        $children = $this->getDoctrine()->getRepository(Category::class)->findByCategoryField($id);
+        if(count($children)>0) {
+            foreach ($children as $child) {
+                $child->setCategory(0);
+            }
+        }
     }
     /**
-     * @Route("/category/count_all/",name="categoryProductsCounter",methods={"PUT","PATCH"})
+     * @Route("/category/count_increase/{id}",name="categoryCountIncrease",methods={"PUT","PATCH"})
      * @param Request $request
      * @return Response
      */
-    function categoryProductsCounter(Request $request){
+    function categoryCountIncrease (Request $request): Response
+    {
+        if($this->categoryCountUpdateIncDcr($request,'increase')) {
+            return new Response('Категория '.$request->get('id').' обновлена', 200);
+        }
+        else
+        {
+            return new Response('Обновление категории не удалось', 418);
+        }
+    }
+    /**
+     * @Route("/category/count_decrease/{id}",name="categoryCountDecrease",methods={"PUT","PATCH"})
+     * @param Request $request
+     * @return Response
+     */
+    function categoryCountDecrease(Request $request): Response
+    {
+
+        if($this->categoryCountUpdateIncDcr($request,'decrease')) {
+            return new Response('Категория '.$request->get('id').' обновлена', 200);
+        }
+        else
+        {
+            return new Response('Обновление категории не удалось', 418);
+        }
+
+    }
+    /**
+     * @Route("/category/count_update_all/",name="categoryCountUpdateAll",methods={"PUT","PATCH"})
+     * @param Request $request
+     * @return Response
+     */
+    function categoryCountUpdateAll(Request $request){
         $categoryFields = $this->getDoctrine()->getRepository(Category::class)->findAll();
         foreach ($categoryFields as $category) {
             $response = $this->client->request(
@@ -142,6 +177,18 @@ class CategoryController extends AbstractController
             $entityManager->flush();
         }
         return new Response('Категории обновлены', 200);
+    }
+    function categoryCountUpdateIncDcr($request,$method){
+        $id = $request->get('id');
+        if(!($this->idValidation($id))){
+            return new Response('categoryCountAdd get not valid id',418);
+        }
+        $category = $this->getDoctrine()->getRepository(Category::class)->findOneBy(array('id' => $id));
+        if($method == 'increase') $one = 1; else if($method == 'decrease' && $category->getProductCount()>0) $one=-1; else return false;
+        $category->setProductCount($category->getProductCount()+$one);
+        $entityManager = $this->getDoctrine()->getManager();
+        $entityManager->flush();
+        return true;
     }
     function toJSON($obj): string
     {
