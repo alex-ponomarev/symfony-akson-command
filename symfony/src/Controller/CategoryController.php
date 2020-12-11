@@ -166,7 +166,9 @@ class CategoryController extends AbstractController
         foreach ($categoryFields as $category) {
             $response = $this->client->request(
                 'GET',
-                'http://10.44.0.230:9191/product/category/'.$category->getId()
+                'http://10.44.0.229:9191/product/search-cat/'.$category->getId(),[
+                'auth_bearer' => '{"accessToken":"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJuYW1lIjoiZ3VseXV0YXlha292Iiwicm9sZSI6ImFkbWluIiwianRpIjoiNWVlOGJiNWMtZGNmOS00YThmLThkNTEtMDNlYzVmNGM1NjA4IiwiaWF0IjoxNjA3Njg1Mjg1LCJleHAiOjE2MDc2ODg4ODV9.2VkdAPyuJTdMFEH1i7I0b9Uh1-pbn7uq1PLj62TiUpo"}',
+                 ]
             );
             $statusCode = $response->getStatusCode();
             if ($statusCode = $response->getStatusCode() != 200)
@@ -205,7 +207,7 @@ class CategoryController extends AbstractController
          if($data === NULL){
              return false;
          }
-         if(!(array_key_exists('name',$data) && preg_match("/^([а-яё\s]+|[a-z\s]+)$/iu",$data['name']))){
+         if(!(array_key_exists('name',$data) && preg_match('/^([а-яё\s]+|[a-z\s]+)$/iu',$data['name']))){
              return false;
          }
          if(!(array_key_exists('count',$data) && is_int($data['count']) && $data['count']>=0)){
