@@ -38,25 +38,10 @@ class Category
     private $product_count;
 
     /**
-     * @ORM\OneToMany(targetEntity=Product::class, mappedBy="category")
-     */
-    private $product_relation;
-
-    /**
-     * @ORM\ManyToOne(targetEntity=Category::class, inversedBy="categoryParentRelation")
+     * @ORM\Column(type="integer", nullable=true)
      */
     private $category;
 
-    /**
-     * @ORM\OneToMany(targetEntity=Category::class, mappedBy="category")
-     */
-    private $categoryParentRelation;
-
-    public function __construct()
-    {
-        $this->product_relation = new ArrayCollection();
-        $this->categoryParentRelation = new ArrayCollection();
-    }
 
     public function getId(): ?int
     {
@@ -87,75 +72,16 @@ class Category
         return $this;
     }
 
-    /**
-     * @return Collection|Product[]
-     */
-    public function getProductRelation(): Collection
-    {
-        return $this->product_relation;
-    }
-
-    public function addProductRelation(Product $productRelation): self
-    {
-        if (!$this->product_relation->contains($productRelation)) {
-            $this->product_relation[] = $productRelation;
-            $productRelation->setCategory($this);
-        }
-
-        return $this;
-    }
-
-    public function removeProductRelation(Product $productRelation): self
-    {
-        if ($this->product_relation->removeElement($productRelation)) {
-            // set the owning side to null (unless already changed)
-            if ($productRelation->getCategory() === $this) {
-                $productRelation->setCategory(null);
-            }
-        }
-
-        return $this;
-    }
-
-    public function getCategory(): ?self
+    public function getCategory(): ?int
     {
         return $this->category;
     }
 
-    public function setCategory(?self $category): self
+    public function setCategory(?int $category): self
     {
         $this->category = $category;
 
         return $this;
     }
 
-    /**
-     * @return Collection|self[]
-     */
-    public function getCategoryParentRelation(): Collection
-    {
-        return $this->categoryParentRelation;
-    }
-
-    public function addCategoryParentRelation(self $categoryParentRelation): self
-    {
-        if (!$this->categoryParentRelation->contains($categoryParentRelation)) {
-            $this->categoryParentRelation[] = $categoryParentRelation;
-            $categoryParentRelation->setCategory($this);
-        }
-
-        return $this;
-    }
-
-    public function removeCategoryParentRelation(self $categoryParentRelation): self
-    {
-        if ($this->categoryParentRelation->removeElement($categoryParentRelation)) {
-            // set the owning side to null (unless already changed)
-            if ($categoryParentRelation->getCategory() === $this) {
-                $categoryParentRelation->setCategory(null);
-            }
-        }
-
-        return $this;
-    }
 }

@@ -66,6 +66,7 @@ class CategoryController extends AbstractController
         $category = new Category();
         $category->setName($data['name']);
         $category->setProductCount($data['count']);
+        $category->setCategory($data["category"]);
         $entityManager->persist($category);
         $entityManager->flush();
         return new Response(null, 200);
@@ -85,7 +86,7 @@ class CategoryController extends AbstractController
         $entityManager = $this->getDoctrine()->getManager();
         $category = $this->getDoctrine()->getRepository(Category::class)->findOneBy(array('id' => $data['id']));
         $category->setName($data['name']);
-     //   $category->setCategory($data["category"]);
+        $category->setCategory($data["category"]);
         $category->setProductCount($data["count"]);
         $entityManager->flush();
 
