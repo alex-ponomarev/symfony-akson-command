@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use App\Repository\CategoryRepository;
 use Doctrine\ORM\Mapping as ORM;
+use OpenApi\Annotations as OA;
 
 
 /**
@@ -15,22 +16,25 @@ class Category
      * @ORM\Id
      * @ORM\GeneratedValue
      * @ORM\Column(type="integer")
+     * @OA\Property(description="The unique identifier of the user.")
      */
     private $id;
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @OA\Property(type="string", maxLength=255)
      */
     private $name;
     
     /**
-     *
      * @ORM\Column(type="integer")
+     * @OA\Property(type="integer")
      */
     private $product_count;
 
     /**
      * @ORM\Column(type="integer", nullable=true)
+     * @OA\Property(type="integer")
      */
     private $category;
 

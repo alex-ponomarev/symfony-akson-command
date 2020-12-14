@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
@@ -14,21 +15,26 @@ use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Symfony\Component\Serializer\Encoder\XmlEncoder;
 use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 use Symfony\Component\Serializer\Serializer;
-
+use Nelmio\ApiDocBundle\Annotation\Model;
+use Nelmio\ApiDocBundle\Annotation\Security;
+use OpenApi\Annotations as OA;
 class CategoryController extends AbstractController
 {
 
     private $client;
+    private string $token;
 
     public function __construct(HttpClientInterface $client)
     {
         $this->client = $client;
+        $this->token = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJuYW1lIjoiZ3VseXV0YXlha292Iiwicm9sZSI6ImFkbWluIiwianRpIjoiNWVlOGJiNWMtZGNmOS00YThmLThkNTEtMDNlYzVmNGM1NjA4IiwiaWF0IjoxNjA3Njg1Mjg1LCJleHAiOjE2MDc2ODg4ODV9.2VkdAPyuJTdMFEH1i7I0b9Uh1-pbn7uq1PLj62TiUpo';
     }
 
     /**
      * @Route("/api/category",
      *     name="categoryGetAll",
      *     methods={"GET"})
+     * @OA\Tag(name="Basic")
      */
     public function categoryGetAll(): Response
     {
@@ -40,6 +46,7 @@ class CategoryController extends AbstractController
      * @Route("/api/category/{id}",name="categoryGetByID",methods={"GET"})
      * @param Request $request
      * @return Response
+     * @OA\Tag(name="Basic")
      */
     public function categoryGetByID(Request $request): Response
     {
@@ -49,11 +56,26 @@ class CategoryController extends AbstractController
         }
         $categoryFields = $this->getDoctrine()->getRepository(Category::class)->findOneBy(array('id' => $id));
         return new Response($this->toJSON($categoryFields));
-    }//httpclient
+    }
     /**
      * @Route("/api/category",name="categoryPost",methods={"POST"})
      * @param Request $request
      * @return Response
+     * * @OA\Response(
+     *     response=200,
+     *     description="Returns the rewards of an user",
+     *     @OA\JsonContent(
+     *        type="array",
+     *        @OA\Items(ref=@Model(type=Category::class))
+     *     )
+     * )
+     * @OA\Parameter(
+     *     name="order",
+     *     in="query",
+     *     description="The field used to order rewards",
+     *     @OA\Schema(type="string")
+     * )
+     * @OA\Tag(name="Basic")
      */
     public function categoryPost(Request $request): Response
     {
@@ -77,6 +99,7 @@ class CategoryController extends AbstractController
      * @Route("/api/category/{id}",name="categoryPatch",methods={"PATCH","PUT"})
      * @param Request $request
      * @return Response
+     * @OA\Tag(name="Basic")
      */
     public function categoryPatch(Request $request): Response
     {
@@ -101,6 +124,7 @@ class CategoryController extends AbstractController
      * @Route("/api/category/{id}",name="categoryDelete",methods={"DELETE"})
      * @param Request $request
      * @return Response
+     * @OA\Tag(name="Basic")
      */
     public function categoryDelete(Request $request): Response
     {
@@ -114,6 +138,13 @@ class CategoryController extends AbstractController
 
         $entityManager->remove($category);
         $entityManager->flush();
+        $this->client->request(
+            'GET',
+            'http://10.44.0.229:9191/product/delete-cat/'.$id,[
+                'auth_bearer' => '{"accessToken":"'.$this->token.'"}',
+            ]
+        );
+
         return new Response('Категория удалена, id нового родителя дочерней категории(если таковая существовала) = 0',200);
     }
     function categoryRemount($id){
@@ -128,6 +159,7 @@ class CategoryController extends AbstractController
      * @Route("/api/category/count_increase/{id}",name="categoryCountIncrease",methods={"PUT","PATCH"})
      * @param Request $request
      * @return Response
+     * @OA\Tag(name="Advanced")
      */
     function categoryCountIncrease (Request $request): Response
     {
@@ -143,6 +175,7 @@ class CategoryController extends AbstractController
      * @Route("/api/category/count_decrease/{id}",name="categoryCountDecrease",methods={"PUT","PATCH"})
      * @param Request $request
      * @return Response
+     * @OA\Tag(name="Advanced")
      */
     function categoryCountDecrease(Request $request): Response
     {
@@ -160,6 +193,7 @@ class CategoryController extends AbstractController
      * @Route("/api/category/count_update_all/",name="categoryCountUpdateAll",methods={"PUT","PATCH"})
      * @param Request $request
      * @return Response
+     * @OA\Tag(name="Advanced")
      */
     function categoryCountUpdateAll(Request $request){
         $categoryFields = $this->getDoctrine()->getRepository(Category::class)->findAll();
@@ -167,12 +201,14 @@ class CategoryController extends AbstractController
             $response = $this->client->request(
                 'GET',
                 'http://10.44.0.229:9191/product/search-cat/'.$category->getId(),[
-                'auth_bearer' => '{"accessToken":"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJuYW1lIjoiZ3VseXV0YXlha292Iiwicm9sZSI6ImFkbWluIiwianRpIjoiNWVlOGJiNWMtZGNmOS00YThmLThkNTEtMDNlYzVmNGM1NjA4IiwiaWF0IjoxNjA3Njg1Mjg1LCJleHAiOjE2MDc2ODg4ODV9.2VkdAPyuJTdMFEH1i7I0b9Uh1-pbn7uq1PLj62TiUpo"}',
+                'auth_bearer' => '{"accessToken":"'.$this->token.'"}',
                  ]
-            );
+            );//залогиниться и принимать токен, когда яков доделает авторизацию
             $statusCode = $response->getStatusCode();
-            if ($statusCode = $response->getStatusCode() != 200)
+            if ($response->getStatusCode() != 200) {
+                $category->setProductCount(0);
                 continue;
+            }
             $content = json_decode($response->getContent(), true);
             $category->setProductCount(count($content));
             $entityManager = $this->getDoctrine()->getManager();
@@ -192,6 +228,19 @@ class CategoryController extends AbstractController
         $entityManager->flush();
         return true;
     }
+    function loginToSecondService(){
+        $response = $this->client->request(
+            'GET',
+            'http://10.44.0.229:9191/api/logic_check/',[
+                'username' => 'akson','password' => 'akson',
+            ]
+        );//залогиниться и принимать токен, когда яков доделает авторизацию
+        $statusCode = $response->getStatusCode();
+        if ($response->getStatusCode() != 200) {
+            $content = json_decode($response->getContent(), true);
+            return $content['token'];
+        }
+    }
     function toJSON($obj): string
     {
 
@@ -200,6 +249,7 @@ class CategoryController extends AbstractController
         $serializer = new Serializer($normalizers, $encoders);
         return $serializer->serialize($obj, 'json');
     }
+
     function jsonValidation($request): bool
     {
 
