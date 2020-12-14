@@ -16,13 +16,11 @@ class DefaultController extends AbstractController
     protected $categoryJSON;
 
     /**
-     * @Route("/index")
-     * @param Request $request
-     * @return Response
+     * @Route("/api/admin")
      */
-    public function index(Request $request): Response
+    public function admin()
     {
-
+        return new Response('<html><body>Admin page!</body></html>');
     }
 
 }

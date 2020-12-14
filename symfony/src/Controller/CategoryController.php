@@ -26,7 +26,7 @@ class CategoryController extends AbstractController
     }
 
     /**
-     * @Route("/category",
+     * @Route("/api/category",
      *     name="categoryGetAll",
      *     methods={"GET"})
      */
@@ -37,7 +37,7 @@ class CategoryController extends AbstractController
     }
 
     /**
-     * @Route("/category/{id}",name="categoryGetByID",methods={"GET"})
+     * @Route("/api/category/{id}",name="categoryGetByID",methods={"GET"})
      * @param Request $request
      * @return Response
      */
@@ -51,7 +51,7 @@ class CategoryController extends AbstractController
         return new Response($this->toJSON($categoryFields));
     }//httpclient
     /**
-     * @Route("/category",name="categoryPost",methods={"POST"})
+     * @Route("/api/category",name="categoryPost",methods={"POST"})
      * @param Request $request
      * @return Response
      */
@@ -74,7 +74,7 @@ class CategoryController extends AbstractController
 
     }
     /**
-     * @Route("/category/{id}",name="categoryPatch",methods={"PATCH","PUT"})
+     * @Route("/api/category/{id}",name="categoryPatch",methods={"PATCH","PUT"})
      * @param Request $request
      * @return Response
      */
@@ -98,7 +98,7 @@ class CategoryController extends AbstractController
         return new Response(null,200);
     }
     /**
-     * @Route("/category/{id}",name="categoryDelete",methods={"DELETE"})
+     * @Route("/api/category/{id}",name="categoryDelete",methods={"DELETE"})
      * @param Request $request
      * @return Response
      */
@@ -125,7 +125,7 @@ class CategoryController extends AbstractController
         }
     }
     /**
-     * @Route("/category/count_increase/{id}",name="categoryCountIncrease",methods={"PUT","PATCH"})
+     * @Route("/api/category/count_increase/{id}",name="categoryCountIncrease",methods={"PUT","PATCH"})
      * @param Request $request
      * @return Response
      */
@@ -140,7 +140,7 @@ class CategoryController extends AbstractController
         }
     }
     /**
-     * @Route("/category/count_decrease/{id}",name="categoryCountDecrease",methods={"PUT","PATCH"})
+     * @Route("/api/category/count_decrease/{id}",name="categoryCountDecrease",methods={"PUT","PATCH"})
      * @param Request $request
      * @return Response
      */
@@ -157,7 +157,7 @@ class CategoryController extends AbstractController
 
     }
     /**
-     * @Route("/category/count_update_all/",name="categoryCountUpdateAll",methods={"PUT","PATCH"})
+     * @Route("/api/category/count_update_all/",name="categoryCountUpdateAll",methods={"PUT","PATCH"})
      * @param Request $request
      * @return Response
      */
@@ -198,7 +198,7 @@ class CategoryController extends AbstractController
         $encoders = [new XmlEncoder(), new JsonEncoder()];
         $normalizers = [new ObjectNormalizer()];
         $serializer = new Serializer($normalizers, $encoders);
-        return $serializer->serialize($obj, 'json',['ignored_attributes' => ['product_relation','productRelation','categoryParentRelation','category']]);
+        return $serializer->serialize($obj, 'json');
     }
     function jsonValidation($request): bool
     {
