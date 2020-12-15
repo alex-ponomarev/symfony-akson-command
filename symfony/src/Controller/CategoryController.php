@@ -38,6 +38,30 @@ class CategoryController extends AbstractController
     }
 
     /**
+     * @Route("/api/category/get_token/{username}&{password}",
+     *     name="getToken",
+     *     methods={"GET"})
+     * @OA\Get(
+     *     summary="Авторизоваться и получить токен",
+     *     tags={"Login"})
+     * @param Request $request
+     * @return Response
+     */
+    public function getToken(Request $request): Response
+    {
+        $password = $request->get('password');
+        $username = $request->get('username');
+        $response = $this->client->request(
+            'GET',
+            'http://10.44.0.230:9191/api/category/login_check',[
+                'json' =>['username'=>$username,'password'=>$password],
+                'headers' => [
+                    'Content-Type' => 'application/json',]
+                ]
+        );
+        return new Response($response->getContent('token'));
+    }
+    /**
      * @Route("/api/category",
      *     name="categoryGetAll",
      *     methods={"GET"})
@@ -179,6 +203,8 @@ class CategoryController extends AbstractController
      * @OA\Put(
      *     summary="Увеличить количество продуктов в категории(id) на один",
      *     tags={"Advanced"})
+     * @OA\Patch (
+     *     tags={"Advanced"})
      */
     function categoryCountIncrease (Request $request): Response
     {
@@ -196,6 +222,8 @@ class CategoryController extends AbstractController
      * @return Response
      * @OA\Put(
      *     summary="Уменьшить количество продуктов в категории(id) на один",
+     *     tags={"Advanced"})
+     * @OA\Patch (
      *     tags={"Advanced"})
      */
     function categoryCountDecrease(Request $request): Response
@@ -216,6 +244,8 @@ class CategoryController extends AbstractController
      * @return Response
      * @OA\Put(
      *     summary="Обновить количество продуктов во всех категориях в соответствии с продуктами сервиса Product",
+     *     tags={"Advanced"})
+     * @OA\Patch (
      *     tags={"Advanced"})
      */
     function categoryCountUpdateAll(Request $request){
