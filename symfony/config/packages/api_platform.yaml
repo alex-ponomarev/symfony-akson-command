@@ -5,3 +5,7 @@ api_platform:
         json: ['application/merge-patch+json']
     swagger:
         versions: [3]
+        api_keys:
+            Подпишите ваши запросы JWT токеном и добавьте перед ним префикс "Bearer ":
+                name: Authorization
+                type: header

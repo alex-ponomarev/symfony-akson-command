@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use ApiPlatform\Core\Annotation\ApiResource;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
@@ -18,6 +19,12 @@ use Symfony\Component\Serializer\Serializer;
 use Nelmio\ApiDocBundle\Annotation\Model;
 use Nelmio\ApiDocBundle\Annotation\Security;
 use OpenApi\Annotations as OA;
+
+/**
+ * @ApiResource()
+ * Class CategoryController
+ * @package App\Controller
+ */
 class CategoryController extends AbstractController
 {
 
@@ -34,7 +41,9 @@ class CategoryController extends AbstractController
      * @Route("/api/category",
      *     name="categoryGetAll",
      *     methods={"GET"})
-     * @OA\Tag(name="Basic")
+     * @OA\Get(
+     *     summary="Получить все категории в таблице",
+     *     tags={"Basic"})
      */
     public function categoryGetAll(): Response
     {
@@ -46,7 +55,9 @@ class CategoryController extends AbstractController
      * @Route("/api/category/{id}",name="categoryGetByID",methods={"GET"})
      * @param Request $request
      * @return Response
-     * @OA\Tag(name="Basic")
+     * @OA\Get(
+     *     summary="Получить категорию по ID",
+     *     tags={"Basic"})
      */
     public function categoryGetByID(Request $request): Response
     {
@@ -61,21 +72,16 @@ class CategoryController extends AbstractController
      * @Route("/api/category",name="categoryPost",methods={"POST"})
      * @param Request $request
      * @return Response
-     * * @OA\Response(
-     *     response=200,
+     * @OA\RequestBody(
      *     description="Returns the rewards of an user",
      *     @OA\JsonContent(
      *        type="array",
      *        @OA\Items(ref=@Model(type=Category::class))
      *     )
      * )
-     * @OA\Parameter(
-     *     name="order",
-     *     in="query",
-     *     description="The field used to order rewards",
-     *     @OA\Schema(type="string")
-     * )
-     * @OA\Tag(name="Basic")
+     * @OA\Post(
+     *     summary="Добавить новую категорию",
+     *     tags={"Basic"})
      */
     public function categoryPost(Request $request): Response
     {
@@ -96,10 +102,19 @@ class CategoryController extends AbstractController
 
     }
     /**
-     * @Route("/api/category/{id}",name="categoryPatch",methods={"PATCH","PUT"})
+     * @Route("/api/category/{id}",name="categoryPatch",methods={"PUT"})
      * @param Request $request
      * @return Response
-     * @OA\Tag(name="Basic")
+     * @OA\RequestBody(
+     *     description="Returns the rewards of an user",
+     *     @OA\JsonContent(
+     *        type="array",
+     *        @OA\Items(ref=@Model(type=Category::class))
+     *     )
+     * )
+     * @OA\Put(
+     *     summary="Обновить поля Категории заданной по ID",
+     *     tags={"Basic"})
      */
     public function categoryPatch(Request $request): Response
     {
@@ -124,7 +139,9 @@ class CategoryController extends AbstractController
      * @Route("/api/category/{id}",name="categoryDelete",methods={"DELETE"})
      * @param Request $request
      * @return Response
-     * @OA\Tag(name="Basic")
+     * @OA\Delete(
+     *     summary="Удаляет категорию по ID",
+     *     tags={"Basic"})
      */
     public function categoryDelete(Request $request): Response
     {
@@ -156,10 +173,12 @@ class CategoryController extends AbstractController
         }
     }
     /**
-     * @Route("/api/category/count_increase/{id}",name="categoryCountIncrease",methods={"PUT","PATCH"})
+     * @Route("/api/category/count_increase/{id}",name="categoryCountIncrease",methods={"PUT"})
      * @param Request $request
      * @return Response
-     * @OA\Tag(name="Advanced")
+     * @OA\Put(
+     *     summary="Увеличить количество продуктов в категории(id) на один",
+     *     tags={"Advanced"})
      */
     function categoryCountIncrease (Request $request): Response
     {
@@ -172,10 +191,12 @@ class CategoryController extends AbstractController
         }
     }
     /**
-     * @Route("/api/category/count_decrease/{id}",name="categoryCountDecrease",methods={"PUT","PATCH"})
+     * @Route("/api/category/count_decrease/{id}",name="categoryCountDecrease",methods={"PUT"})
      * @param Request $request
      * @return Response
-     * @OA\Tag(name="Advanced")
+     * @OA\Put(
+     *     summary="Уменьшить количество продуктов в категории(id) на один",
+     *     tags={"Advanced"})
      */
     function categoryCountDecrease(Request $request): Response
     {
@@ -190,10 +211,12 @@ class CategoryController extends AbstractController
 
     }
     /**
-     * @Route("/api/category/count_update_all/",name="categoryCountUpdateAll",methods={"PUT","PATCH"})
+     * @Route("/api/category/count_update_all/",name="categoryCountUpdateAll",methods={"PUT"})
      * @param Request $request
      * @return Response
-     * @OA\Tag(name="Advanced")
+     * @OA\Put(
+     *     summary="Обновить количество продуктов во всех категориях в соответствии с продуктами сервиса Product",
+     *     tags={"Advanced"})
      */
     function categoryCountUpdateAll(Request $request){
         $categoryFields = $this->getDoctrine()->getRepository(Category::class)->findAll();
