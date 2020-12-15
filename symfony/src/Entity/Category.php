@@ -2,13 +2,13 @@
 
 namespace App\Entity;
 
-use ApiPlatform\Core\Annotation\ApiResource;
 use App\Repository\CategoryRepository;
 use Doctrine\ORM\Mapping as ORM;
 use OpenApi\Annotations as OA;
 
 
 /**
+ * @ORM\EntityListeners({"App\EventListener\CategoryChangedNotifier"})
  * @ORM\Entity(repositoryClass=CategoryRepository::class)
  */
 class Category
@@ -79,4 +79,5 @@ class Category
 
         return $this;
     }
+
 }

@@ -179,12 +179,7 @@ class CategoryController extends AbstractController
 
         $entityManager->remove($category);
         $entityManager->flush();
-        $this->client->request(
-            'GET',
-            'http://10.44.0.229:9191/product/delete-cat/'.$id,[
-                'auth_bearer' => '{"accessToken":"'.$this->token.'"}',
-            ]
-        );
+
 
         return new Response('Категория удалена, id нового родителя дочерней категории(если таковая существовала) = 0',200);
     }
@@ -301,6 +296,10 @@ class CategoryController extends AbstractController
         $normalizers = [new ObjectNormalizer()];
         $serializer = new Serializer($normalizers, $encoders);
         return $serializer->serialize($obj, 'json');
+    }
+    private function routeToControllerName($routename) {
+        $routes = $this->get('router')->getRouteCollection();
+        return $routes->get($routename)->getDefaults()['_controller'];
     }
 
     function jsonValidation($request): bool
