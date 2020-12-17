@@ -3,6 +3,9 @@
 namespace App\Controller;
 
 use ApiPlatform\Core\Annotation\ApiResource;
+use App\Security\Authorization;
+use App\Validator\CategoryValidator;
+use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
@@ -11,13 +14,13 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 use App\Entity\Product;
 use App\Entity\Category;
+use App\DataCrypt\Encoder;
 use App\Repository\CategoryRepository;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Symfony\Component\Serializer\Encoder\XmlEncoder;
 use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 use Symfony\Component\Serializer\Serializer;
 use Nelmio\ApiDocBundle\Annotation\Model;
-use Nelmio\ApiDocBundle\Annotation\Security;
 use OpenApi\Annotations as OA;
 
 /**
@@ -30,13 +33,38 @@ class CategoryController extends AbstractController
 
     private $client;
     private string $token;
+    /**
+     * @var CategoryValidator
+     */
+    private CategoryValidator $validator;
+    /**
+     * @var Encoder
+     */
+    private Encoder $encoder;
+    /**
+     * @var CategoryRepository
+     */
+    private CategoryRepository $repository;
+    /**
+     * @var Authorization
+     */
+    private Authorization $authorization;
 
-    public function __construct(HttpClientInterface $client)
+    public function __construct(HttpClientInterface $client,
+                                CategoryRepository $repository,
+                                CategoryValidator $validator,
+                                Encoder $encoder,
+                                Authorization $authorization)
     {
         $this->client = $client;
-        $this->token = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJuYW1lIjoiZ3VseXV0YXlha292Iiwicm9sZSI6ImFkbWluIiwianRpIjoiNWVlOGJiNWMtZGNmOS00YThmLThkNTEtMDNlYzVmNGM1NjA4IiwiaWF0IjoxNjA3Njg1Mjg1LCJleHAiOjE2MDc2ODg4ODV9.2VkdAPyuJTdMFEH1i7I0b9Uh1-pbn7uq1PLj62TiUpo';
-    }
+        $this ->validator = $validator;
+        $this ->encoder = $encoder;
+        $this->repository = $repository;
+        $this->authorization = $authorization;
+        $this->token =  $this->authorization->loginToProductService();
 
+    }
+    //залогиниться и принимать токен, когда на Продукте заработает авторизация
     /**
      * @Route("/api/category/get_token/{username}&{password}",
      *     name="getToken",
@@ -63,70 +91,72 @@ class CategoryController extends AbstractController
     }
     /**
      * @Route("/api/category",
-     *     name="categoryGetAll",
+     *     name="getAll",
      *     methods={"GET"})
      * @OA\Get(
      *     summary="Получить все категории в таблице",
      *     tags={"Basic"})
      */
-    public function categoryGetAll(): Response
+    public function getAll(): Response
     {
-        $categoryFields = $this->getDoctrine()->getRepository(Category::class)->findAll();
-        return new Response($this->toJSON($categoryFields));
+       
+        try {
+            $categoryFields = $this->repository->findAll();
+            return new Response($this->encoder->toJSON($categoryFields));
+        }
+        catch (Exception $err){
+            return new Response($err->getMessage(),418);
+        }
     }
 
     /**
-     * @Route("/api/category/{id}",name="categoryGetByID",methods={"GET"})
+     * @Route("/api/category/{id}",name="getByID",methods={"GET"})
      * @param Request $request
      * @return Response
      * @OA\Get(
      *     summary="Получить категорию по ID",
      *     tags={"Basic"})
      */
-    public function categoryGetByID(Request $request): Response
+    public function getByID(Request $request): Response
     {
-        $id = $request->get('id');
-        if(!($this->idValidation($id))){
-            return new Response('categoryGetByID',418);
+        try {
+            $id = $request->get('id');
+            $this->validator->idValidation($id);
+            $categoryFields = $this->repository->findOneBy(array('id' => $id));
+            return new Response($this->encoder->toJSON($categoryFields));
+        } catch (Exception $err) {
+            return new Response($err->getMessage(),418);
         }
-        $categoryFields = $this->getDoctrine()->getRepository(Category::class)->findOneBy(array('id' => $id));
-        return new Response($this->toJSON($categoryFields));
     }
     /**
-     * @Route("/api/category",name="categoryPost",methods={"POST"})
+     * @Route("/api/category",name="post",methods={"POST"})
      * @param Request $request
      * @return Response
      * @OA\RequestBody(
      *     description="Returns the rewards of an user",
      *     @OA\JsonContent(
-     *        type="array",
-     *        @OA\Items(ref=@Model(type=Category::class))
+     *        type="Category",
+     *        ref=@Model(type=Category::class)
      *     )
      * )
      * @OA\Post(
      *     summary="Добавить новую категорию",
      *     tags={"Basic"})
      */
-    public function categoryPost(Request $request): Response
+    public function post(Request $request): Response
     {
-        if(!$this->jsonValidation($request)){
-            return new Response('categoryPost',418);
+        try {
+            $fields = json_decode($request->getContent(), true);
+            $this->validator->fieldsValidation($fields);
+            $result = $this->repository->post($fields);
+            return new Response($result[0], $result[1]);
+        } catch (Exception $err) {
+            return new Response($err->getMessage(),418);
         }
-        $data=$request->toArray();
-
-        $entityManager = $this->getDoctrine()->getManager();
-
-        $category = new Category();
-        $category->setName($data['name']);
-        $category->setProductCount($data['count']);
-        $category->setCategory($data["category"]);
-        $entityManager->persist($category);
-        $entityManager->flush();
-        return new Response(null, 200);
 
     }
     /**
-     * @Route("/api/category/{id}",name="categoryPatch",methods={"PUT"})
+     * @Route("/api/category/{id}",name="patch",methods={"PUT"})
      * @param Request $request
      * @return Response
      * @OA\RequestBody(
@@ -140,59 +170,40 @@ class CategoryController extends AbstractController
      *     summary="Обновить поля Категории заданной по ID",
      *     tags={"Basic"})
      */
-    public function categoryPatch(Request $request): Response
+    public function patch(Request $request): Response
     {
-        $id = $request->get('id');
-        if(!($this->idValidation($id))){
-            return new Response('categoryPatch get not valid id',418);
+        try {
+            $id = $request->get('id');
+            $this->validator->idValidation($id);
+            $fields = json_decode($request->getContent(), true);
+            $this->validator->fieldsValidation($fields);
+            $result = $this->repository->patch($id,$fields);
+            return new Response($result[0], $result[1]);
+        } catch (Exception $err) {
+            return new Response($err->getMessage(),418);
         }
-        if(!$this->jsonValidation($request)){
-            return new Response('categoryPatch get not valid json',418);
-        }
-        $data=$request->toArray();
-        $entityManager = $this->getDoctrine()->getManager();
-        $category = $this->getDoctrine()->getRepository(Category::class)->findOneBy(array('id' => $id));
-        $category->setName($data['name']);
-        $category->setCategory($data["category"]);
-        $category->setProductCount($data["count"]);
-        $entityManager->flush();
-
-        return new Response(null,200);
     }
     /**
-     * @Route("/api/category/{id}",name="categoryDelete",methods={"DELETE"})
+     * @Route("/api/category/{id}",name="delete",methods={"DELETE"})
      * @param Request $request
      * @return Response
      * @OA\Delete(
      *     summary="Удаляет категорию по ID",
      *     tags={"Basic"})
      */
-    public function categoryDelete(Request $request): Response
+    public function delete(Request $request): Response
     {
-        $id = $request->get('id');
-        if(!($this->idValidation($id))){
-            return new Response('categoryDelete get not valid id',418);
-        }
-        $entityManager = $this->getDoctrine()->getManager();
-        $category = $this->getDoctrine()->getRepository(Category::class)->findOneBy(array('id' => $id));
-        $this->categoryRemount($id);
-
-        $entityManager->remove($category);
-        $entityManager->flush();
-
-
-        return new Response('Категория удалена, id нового родителя дочерней категории(если таковая существовала) = 0',200);
-    }
-    function categoryRemount($id){
-        $children = $this->getDoctrine()->getRepository(Category::class)->findByCategoryField($id);
-        if(count($children)>0) {
-            foreach ($children as $child) {
-                $child->setCategory(0);
-            }
+        try {
+            $id = $request->get('id');
+            $this->validator->idValidation($id);
+            $result = $this->repository->delete($id);
+            return new Response($result[0], $result[1]);
+        } catch (Exception $err) {
+            return new Response($err->getMessage(),418);
         }
     }
     /**
-     * @Route("/api/category/count_increase/{id}",name="categoryCountIncrease",methods={"PUT"})
+     * @Route("/api/category/count_increase/{id}",name="countIncrease",methods={"PUT"})
      * @param Request $request
      * @return Response
      * @OA\Put(
@@ -201,18 +212,22 @@ class CategoryController extends AbstractController
      * @OA\Patch (
      *     tags={"Advanced"})
      */
-    function categoryCountIncrease (Request $request): Response
+    function countIncrease (Request $request): Response
     {
-        if($this->categoryCountUpdateIncDcr($request,'increase')) {
-            return new Response('Категория '.$request->get('id').' обновлена', 200);
-        }
-        else
-        {
-            return new Response('Обновление категории не удалось', 418);
+        try {
+            $id = $request->get('id');
+            $this->validator->idValidation($id);
+            if ($this->repository->countUpdateIncDcr($id, 'increase')) {
+                return new Response('Категория ' . $id . ' обновлена', 200);
+            } else {
+                return new Response('Обновление категории не удалось', 418);
+            }
+        } catch (Exception $err) {
+            return new Response($err->getMessage(),418);
         }
     }
     /**
-     * @Route("/api/category/count_decrease/{id}",name="categoryCountDecrease",methods={"PUT"})
+     * @Route("/api/category/count_decrease/{id}",name="countDecrease",methods={"PUT"})
      * @param Request $request
      * @return Response
      * @OA\Put(
@@ -221,20 +236,23 @@ class CategoryController extends AbstractController
      * @OA\Patch (
      *     tags={"Advanced"})
      */
-    function categoryCountDecrease(Request $request): Response
+    function countDecrease(Request $request): Response
     {
-
-        if($this->categoryCountUpdateIncDcr($request,'decrease')) {
-            return new Response('Категория '.$request->get('id').' обновлена', 200);
+        try {
+            $id = $request->get('id');
+            $this->validator->idValidation($id);
+            if ($this->repository->countUpdateIncDcr($id, 'decrease')) {
+                return new Response('Категория ' . $id . ' обновлена', 200);
+            } else {
+                return new Response('Обновление категории не удалось', 418);
+            }
         }
-        else
-        {
-            return new Response('Обновление категории не удалось', 418);
+        catch (Exception $err){
+            return new Response($err->getMessage(),418);
         }
-
     }
     /**
-     * @Route("/api/category/count_update_all/",name="categoryCountUpdateAll",methods={"PUT"})
+     * @Route("/api/category/count_synchronization/",name="countSynchronization",methods={"PUT"})
      * @param Request $request
      * @return Response
      * @OA\Put(
@@ -243,89 +261,39 @@ class CategoryController extends AbstractController
      * @OA\Patch (
      *     tags={"Advanced"})
      */
-    function categoryCountUpdateAll(Request $request){
-        $categoryFields = $this->getDoctrine()->getRepository(Category::class)->findAll();
-        foreach ($categoryFields as $category) {
-            $response = $this->client->request(
-                'GET',
-                'http://10.44.0.229:9191/product/search-cat/'.$category->getId(),[
-                'auth_bearer' => '{"accessToken":"'.$this->token.'"}',
-                 ]
-            );//залогиниться и принимать токен, когда яков доделает авторизацию
-            $statusCode = $response->getStatusCode();
-            if ($response->getStatusCode() != 200) {
-                $category->setProductCount(0);
-                continue;
-            }
-            $content = json_decode($response->getContent(), true);
-            $category->setProductCount(count($content));
-            $entityManager = $this->getDoctrine()->getManager();
-            $entityManager->flush();
-        }
-        return new Response('Категории обновлены', 200);
-    }
-    function categoryCountUpdateIncDcr($request,$method){
-        $id = $request->get('id');
-        if(!($this->idValidation($id))){
-            return new Response('categoryCountAdd get not valid id',418);
-        }
-        $category = $this->getDoctrine()->getRepository(Category::class)->findOneBy(array('id' => $id));
-        if($method == 'increase') $one = 1; else if($method == 'decrease' && $category->getProductCount()>0) $one=-1; else return false;
-        $category->setProductCount($category->getProductCount()+$one);
-        $entityManager = $this->getDoctrine()->getManager();
-        $entityManager->flush();
-        return true;
-    }
-    function loginToSecondService(){
-        $response = $this->client->request(
-            'GET',
-            'http://10.44.0.229:9191/api/logic_check/',[
-                'username' => 'akson','password' => 'akson',
-            ]
-        );//залогиниться и принимать токен, когда яков доделает авторизацию
-        $statusCode = $response->getStatusCode();
-        if ($response->getStatusCode() != 200) {
-            $content = json_decode($response->getContent(), true);
-            return $content['token'];
-        }
-    }
-    function toJSON($obj): string
+    function countSynchronization(Request $request): Response
     {
+        dump($this->token);
+        $refreshStatus = ['В данный момент обновление категорий невозможно',418];
+        try {
+            $categoryFields = $this->getDoctrine()->getRepository(Category::class)->findAll();
+            foreach ($categoryFields as $category) {
+                //получаем по одной порции, чтобы не убить память
+                //когда на сервисе Product будет реализована прямая выдача количества - изменить цикл
+                $response = $this->client->request(
+                    'GET',
+                    'http://10.44.0.229:9191/product/search-cat/' . $category->getId(), [
+                        'auth_bearer' => '{"accessToken":"' . $this->token . '"}',
+                    ]
+                );
+                $statusCode = $response->getStatusCode();
 
-        $encoders = [new XmlEncoder(), new JsonEncoder()];
-        $normalizers = [new ObjectNormalizer()];
-        $serializer = new Serializer($normalizers, $encoders);
-        return $serializer->serialize($obj, 'json');
+                if ($response->getStatusCode() != 200) {
+                    $category->setProductCount(0);
+                    continue;
+                }
+                $content = json_decode($response->getContent(), true);
+                $this->repository->countSynchronization($category, $content);
+                $refreshStatus = ['Категории обновлены',200];
+            }
+            return new Response($refreshStatus[0], $refreshStatus[1]);
+        }
+        catch (Exception $err){
+            return new Response($err->getMessage(),418);
+        }
     }
-    private function routeToControllerName($routename) {
+    /*private function routeToControllerName($routename) {
         $routes = $this->get('router')->getRouteCollection();
         return $routes->get($routename)->getDefaults()['_controller'];
-    }
-
-    function jsonValidation($request): bool
-    {
-
-        $data = json_decode($request->getContent(), true);
-         if($data === NULL){
-             return false;
-         }
-         if(!(array_key_exists('name',$data) && preg_match('/^([а-яё\s]+|[a-z\s]+)$/iu',$data['name']))){
-             return false;
-         }
-         if(!(array_key_exists('count',$data) && is_int($data['count']) && $data['count']>=0)){
-             return false;
-         }
-         if(!(array_key_exists('category',$data) && is_int($data['category']) && $data['category']>=0)){
-             return false;
-         }
-         return true;
-    }
-    function idValidation($id): bool
-    {
-        if(!(is_numeric($id) && is_int((int)$id))){
-            return false;
-        }
-        return true;
-    }
-
+    }*/
 }

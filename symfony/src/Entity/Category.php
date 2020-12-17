@@ -17,7 +17,7 @@ class Category
      * @ORM\Id
      * @ORM\GeneratedValue
      * @ORM\Column(type="integer")
-     * @OA\Property(description="The unique identifier of the user.")
+     * @OA\Property(readOnly="true")
      */
     private $id;
 
