@@ -197,6 +197,13 @@ class CategoryController extends AbstractController
             $id = $request->get('id');
             $this->validator->idValidation($id);
             $result = $this->repository->delete($id);
+           $this->client->request(
+                'DELETE',
+                'http://10.44.0.229:9191/api/product/delete-cat/'.$id,[
+                    'headers' => [
+                        "Authorization" =>"Bearer ".$this->token
+                    ]]
+            );
             return new Response($result[0], $result[1]);
         } catch (Exception $err) {
             return new Response($err->getMessage(),418);
@@ -263,7 +270,6 @@ class CategoryController extends AbstractController
      */
     function countSynchronization(Request $request): Response
     {
-        dump($this->token);
         $refreshStatus = ['В данный момент обновление категорий невозможно',418];
         try {
             $categoryFields = $this->getDoctrine()->getRepository(Category::class)->findAll();
@@ -272,12 +278,11 @@ class CategoryController extends AbstractController
                 //когда на сервисе Product будет реализована прямая выдача количества - изменить цикл
                 $response = $this->client->request(
                     'GET',
-                    'http://10.44.0.229:9191/product/search-cat/' . $category->getId(), [
-                        'auth_bearer' => '{"accessToken":"' . $this->token . '"}',
-                    ]
+                    'http://10.44.0.229:9191/api/product/search-cat/'.$category->getId(),[
+                    'headers' => [
+                        "Authorization" =>"Bearer ".$this->token
+                    ]]
                 );
-                $statusCode = $response->getStatusCode();
-
                 if ($response->getStatusCode() != 200) {
                     $category->setProductCount(0);
                     continue;

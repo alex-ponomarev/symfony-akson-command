@@ -16,7 +16,7 @@ class Authorization
     function loginToProductService(){
         $response = $this->client->request(
             'GET',
-            'http://10.44.0.230:9191/api/category/login_check',[
+            'http://10.44.0.229:9191/api/login_check',[
                 'json' =>['username'=>'akson','password'=>'akson'],
                 'headers' => [
                     'Content-Type' => 'application/json',]
