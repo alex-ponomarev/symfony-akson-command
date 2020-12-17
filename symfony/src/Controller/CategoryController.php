@@ -194,12 +194,12 @@ class CategoryController extends AbstractController
     public function delete(Request $request): Response
     {
         try {
-            $id = $request->get('id');
-            $this->validator->idValidation($id);
-            $result = $this->repository->delete($id);
+           $id = $request->get('id');
+           $this->validator->idValidation($id);
+           $result = $this->repository->delete($id);
            $this->client->request(
                 'DELETE',
-                'http://10.44.0.229:9191/api/product/delete-cat/'.$id,[
+                'http://10.44.0.229:9191/api/product/delete/'.$id,[
                     'headers' => [
                         "Authorization" =>"Bearer ".$this->token
                     ]]
