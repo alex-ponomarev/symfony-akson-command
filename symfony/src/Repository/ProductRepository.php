@@ -51,6 +51,49 @@ class ProductRepository extends ServiceEntityRepository
     }
 
 
+    public function post( $fields)
+    {
+        $product = new Product();
+        $product->setName($fields['name']);
+        $product->setSku($fields['sku']);
+        $product->setPrice($fields['price']);
+        $product->setDescription($fields['description']);
+        $product->setCategory($fields['category']);
+        $this->_em->persist($product);
+        $this->_em->flush();
+
+    }
+
+    public function patch($fields)
+    {
+        $product = $this->findBy(array('id' => $fields['id']));
+        $product->setName($fields['name']);
+        $product->setSku($fields['sku']);
+        $product->setPrice($fields['price']);
+        $product->setDescription($fields['description']);
+        $product->setCategory($fields['category']);
+        $this->_em->flush();
+
+    }
+
+    public function delete($id)
+    {
+        $product = $this->findBy(array('id' => $id));
+        $this->_em->remove($product[0]);
+        $this->_em->flush();
+        //уведомить категорию
+    }
+
+/*
+    public function productsRemountCategory($products,$trash,$_this)
+    {
+        foreach ($products as $product){
+            $product->setCategory($trash);
+            $entityManager = $_this->getDoctrine()->getManager();
+            $entityManager->flush();
+        }
+    }
+*/
     // /**
     //  * @return Product[] Returns an array of Product objects
     //  */

@@ -24,7 +24,7 @@ final class Version20201215052930 extends AbstractMigration
         $this->addSql('CREATE SEQUENCE product_id_seq INCREMENT BY 1 MINVALUE 1 START 1');
         $this->addSql('CREATE SEQUENCE "user_id_seq" INCREMENT BY 1 MINVALUE 1 START 1');
         $this->addSql('CREATE TABLE category (id INT NOT NULL, name VARCHAR(255) NOT NULL, category INT DEFAULT NULL, product_count INT NOT NULL, PRIMARY KEY(id))');
-        $this->addSql('CREATE TABLE product (id INT NOT NULL, name VARCHAR(255) NOT NULL, sku VARCHAR(255) DEFAULT NULL, price VARCHAR(255) DEFAULT NULL, description VARCHAR(255) DEFAULT NULL, category INT DEFAULT NULL, PRIMARY KEY(id))');
+        $this->addSql('CREATE TABLE product (id INT NOT NULL, name VARCHAR(255) NOT NULL, sku VARCHAR(255) DEFAULT NULL, price INT DEFAULT NULL, description VARCHAR(255) DEFAULT NULL, category INT DEFAULT NULL, PRIMARY KEY(id))');
         $this->addSql('CREATE TABLE "user" (id INT NOT NULL, username VARCHAR(180) NOT NULL, roles JSON NOT NULL, password VARCHAR(255) NOT NULL, PRIMARY KEY(id))');
         $this->addSql('CREATE UNIQUE INDEX UNIQ_8D93D649F85E0677 ON "user" (username)');
     }

@@ -58,7 +58,6 @@ class CategoryController extends AbstractController
         $this->token =  $this->authorization->loginToProductService();
 
     }
-    //залогиниться и принимать токен, когда на Продукте заработает авторизация
     /**
      * @Route("/api/category/login_get_token/{username}&{password}",
      *     name="getToken",

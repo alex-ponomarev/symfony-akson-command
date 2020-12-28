@@ -3,6 +3,7 @@
 namespace App\DataFixtures;
 
 use App\Entity\Category;
+use App\Entity\Product;
 use App\Entity\User;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
@@ -12,14 +13,24 @@ class AppFixtures extends Fixture
     public function load(ObjectManager $manager)
     {
         for ($i = 0; $i < 20; $i++) {
-            $product = new Category();
+            $category = new Category();
             if($i==0){
-                $product->setName('Singularity');
+                $category->setName('Singularity');
             }else {
-                $product->setName('Категория-' . $i);
+                $category->setName('Категория-' . $i);
             }
-            $product->setProductCount(0);
-            $product->setCategory($i);
+            $category->setProductCount(0);
+            $category->setCategory($i);
+            $category->persist($category);
+        }
+
+        for ($i = 0; $i < 20; $i++) {
+            $product = new Product();
+            $product->setName('Name-'.$i);
+            $product->setSku('TestSku');
+            $product->setDescription('TestDescription');
+            $product->setPrice(mt_rand(100, 10000));
+            $product->setCategory(mt_rand(1, 19));
             $manager->persist($product);
         }
 
