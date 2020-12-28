@@ -13,7 +13,11 @@ class AppFixtures extends Fixture
     {
         for ($i = 0; $i < 20; $i++) {
             $product = new Category();
-            $product->setName('Категория- '.$i);
+            if($i==0){
+                $product->setName('Singularity');
+            }else {
+                $product->setName('Категория- ' . $i);
+            }
             $product->setProductCount(0);
             $product->setCategory($i);
             $manager->persist($product);

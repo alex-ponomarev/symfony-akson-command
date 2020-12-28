@@ -7,19 +7,13 @@ use App\Security\Authorization;
 use App\Validator\CategoryValidator;
 use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
-use App\Entity\Product;
 use App\Entity\Category;
 use App\DataCrypt\Encoder;
 use App\Repository\CategoryRepository;
-use Symfony\Component\Serializer\Encoder\JsonEncoder;
-use Symfony\Component\Serializer\Encoder\XmlEncoder;
-use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
-use Symfony\Component\Serializer\Serializer;
 use Nelmio\ApiDocBundle\Annotation\Model;
 use OpenApi\Annotations as OA;
 
@@ -32,7 +26,7 @@ class CategoryController extends AbstractController
 {
 
     private $client;
-    private string $token;
+    private $token;
     /**
      * @var CategoryValidator
      */
