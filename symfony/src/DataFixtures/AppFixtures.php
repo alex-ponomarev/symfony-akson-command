@@ -16,7 +16,7 @@ class AppFixtures extends Fixture
             if($i==0){
                 $product->setName('Singularity');
             }else {
-                $product->setName('Категория- ' . $i);
+                $product->setName('Категория-' . $i);
             }
             $product->setProductCount(0);
             $product->setCategory($i);
