@@ -22,21 +22,18 @@ class CategoryValidator extends ConstraintValidator
     }
     function fieldsValidation($fields): bool
     {
-        if ($fields === NULL) {
-            throw new Exception('Запрос не содержит интерпретируемый JSON');
-        }
         if (!(array_key_exists('name', $fields))) {
             throw new Exception('JSON не содержит поле name');
-        } else if (!(preg_match('/^([а-яё\s]+|[a-z\s]+)$/iu', $fields['name']))) {
+        } else if (!(preg_match('/^([А-ЯЁ\s][а-яё\s]+|[A-Z\s][a-z\s]+)$/iu', $fields['name']))) {
             throw new Exception('Поле name не соответствует формату: допустимы только буквы, недопустимо сочетание разных алфавитов');
         }
 
         if (!(array_key_exists('productCount', $fields))) {
-            throw new Exception('JSON не содержит поле count');
+            throw new Exception('JSON не содержит поле productCount');
         } else if (!(is_int($fields['productCount']))) {
-            throw new Exception('Поле count не содержит интерпретируемое целое число');
+            throw new Exception('Поле productCount не содержит интерпретируемое целое число');
         } else if (!($fields['productCount'] >= 0)) {
-            throw new Exception('Поле count не содержит нуль или явно положительное число');
+            throw new Exception('Поле productCount не содержит нуль или явно положительное число');
         }
 
         if (!(array_key_exists('category', $fields))) {

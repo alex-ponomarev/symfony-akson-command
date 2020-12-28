@@ -66,7 +66,7 @@ class CategoryController extends AbstractController
     }
     //залогиниться и принимать токен, когда на Продукте заработает авторизация
     /**
-     * @Route("/api/category/get_token/{username}&{password}",
+     * @Route("/api/category/login_get_token/{username}&{password}",
      *     name="getToken",
      *     methods={"GET"})
      * @OA\Get(
@@ -80,7 +80,7 @@ class CategoryController extends AbstractController
         $password = $request->get('password');
         $username = $request->get('username');
         $response = $this->client->request(
-            'GET',
+            'POST',
             'http://10.44.0.230:9191/api/category/login_check',[
                 'json' =>['username'=>$username,'password'=>$password],
                 'headers' => [
@@ -210,7 +210,7 @@ class CategoryController extends AbstractController
         }
     }
     /**
-     * @Route("/api/category/count_increase/{id}",name="countIncrease",methods={"PUT"})
+     * @Route("/api/category/count_increase/{id}",name="countIncrease",methods={"PUT","PATCH"})
      * @param Request $request
      * @return Response
      * @OA\Put(
@@ -234,7 +234,7 @@ class CategoryController extends AbstractController
         }
     }
     /**
-     * @Route("/api/category/count_decrease/{id}",name="countDecrease",methods={"PUT"})
+     * @Route("/api/category/count_decrease/{id}",name="countDecrease",methods={"PUT","PATCH"})
      * @param Request $request
      * @return Response
      * @OA\Put(
@@ -259,7 +259,7 @@ class CategoryController extends AbstractController
         }
     }
     /**
-     * @Route("/api/category/count_synchronization/",name="countSynchronization",methods={"PUT"})
+     * @Route("/api/category/count_synchronization/",name="countSynchronization",methods={"PUT","PATCH"})
      * @param Request $request
      * @return Response
      * @OA\Put(

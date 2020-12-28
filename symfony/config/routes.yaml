@@ -1,6 +1,7 @@
 # config/routes.yaml
 api_login_check:
   path: /api/category/login_check
+  methods: POST
 
 app.swagger_ui:
   path: /api/doc

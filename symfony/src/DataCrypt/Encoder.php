@@ -13,7 +13,6 @@ class Encoder
 {
     function toJSON($obj): string
     {
-
         $encoders = [new XmlEncoder(), new JsonEncoder()];
         $normalizers = [new ObjectNormalizer()];
         $serializer = new Serializer($normalizers, $encoders);

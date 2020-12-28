@@ -1,5 +1,5 @@
 <?php
-
+/*
 
 namespace App\Tests\src\Controller;
 
@@ -17,3 +17,4 @@ class CategoryControllerTest extends TestCase
         //$this->assertEquals(42, $result);
     }
 }
+*/

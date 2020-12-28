@@ -7,6 +7,7 @@
         "php": ">=7.4",
         "ext-ctype": "*",
         "ext-iconv": "*",
+        "ext-json": "*",
         "api-platform/core": "^2.5",
         "composer/package-versions-deprecated": "1.11.99.1",
         "doctrine/annotations": "^1.0",
@@ -33,12 +34,10 @@
         "symfony/serializer": "5.2.*",
         "symfony/twig-bundle": "5.2.*",
         "symfony/validator": "5.2.*",
-        "symfony/yaml": "5.2.*",
-        "ext-json": "*"
+        "symfony/yaml": "5.2.*"
     },
     "require-dev": {
         "doctrine/doctrine-fixtures-bundle": "^3.4",
-        "phpunit/phpunit": "^7.0",
         "symfony/maker-bundle": "^1.25",
         "symfony/phpunit-bridge": "^5.2",
         "symfony/stopwatch": "^5.2",
