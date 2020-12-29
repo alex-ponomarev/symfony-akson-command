@@ -20,6 +20,7 @@ class ProductValidator extends ConstraintValidator
             ->setParameter('{{ value }}', $value)
             ->addViolation();
     }
+
     function fieldsValidation($fields): bool
     {
         if ((array_key_exists('price', $fields))) {
@@ -47,15 +48,24 @@ class ProductValidator extends ConstraintValidator
 
         return true;
     }
+
     function idValidation($id): bool
     {
-        if(!(is_numeric($id))) {
+        if (!(is_numeric($id))) {
             throw new Exception('ID не является интерпретируемым числом');
-        }else if(!(is_int((int)$id))){
+        } else if (($this->isDecimal($id))) {
             throw new Exception('ID не является целым числом');
-        }else if(!($id>=0)){
+        } else if (!($id >= 0)) {
             throw new Exception ('ID не является нулем или явно положительным числом');
         }
         return true;
+    }
+
+    function isDecimal($id)
+    {
+        $n = abs($id);
+        $whole = floor($n);
+        $fraction = $n - $whole;
+        return $fraction > 0;
     }
 }

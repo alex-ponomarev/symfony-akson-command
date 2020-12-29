@@ -28,16 +28,7 @@ class CategoryValidatorTest extends TestCase
         }
 
     }
-    public function testFieldsValidationCategoryNull()
-    {
-        $validator = new CategoryValidator();
-        try {
-            $result = $validator->fieldsValidation(['name' => 'test', 'productCount' => 0]);
-        } catch (Exception $e) {
-            $this->assertEquals('JSON не содержит поле category', $e->getMessage());
-        }
 
-    }
     public function testFieldsValidationNamePatternCombinationAlphabet()
     {
         $validator = new CategoryValidator();
@@ -119,14 +110,35 @@ class CategoryValidatorTest extends TestCase
 
     }
 
-   /*
-    function testIdValidation()
+    public function testIdValidationNaN()
     {
         $validator = new CategoryValidator();
-        $result = $validator->idValidation('ff4');
-        // убедитесь, что ваш калькулятор добавил цифры правильно!
-        $this->assertEquals('ID не является интерпретируемым числом', $result->getMessage());
+        try {
+            $result = $validator->idValidation('FFFF');
+        } catch (Exception $e) {
+            $this->assertEquals('ID не является интерпретируемым числом', $e->getMessage());
+        }
+
     }
-    */
+    public function testIdValidationNotAnInt()
+    {
+        $validator = new CategoryValidator();
+        try {
+            $result = $validator->idValidation(4.3);
+        } catch (Exception $e) {
+            $this->assertEquals('ID не является целым числом', $e->getMessage());
+        }
+
+    }
+    public function testIdValidationNotAnPlus()
+    {
+        $validator = new CategoryValidator();
+        try {
+            $result = $validator->idValidation(-3);
+        } catch (Exception $e) {
+            $this->assertEquals('ID не является нулем или явно положительным числом', $e->getMessage());
+        }
+
+    }
 
 }
