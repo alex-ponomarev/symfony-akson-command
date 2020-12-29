@@ -55,12 +55,12 @@ class CategoryController extends AbstractController
         $this ->encoder = $encoder;
         $this->repository = $repository;
         $this->authorization = $authorization;
-        $this->token =  $this->authorization->loginToProductService();
+        $this->token =  $this->authorization->loginToProductService($_ENV['URL_SERVICE_CATEGORY']);
 
     }
     /**
      * @Route("/api/category/login_get_token/{username}&{password}",
-     *     name="getToken",
+     *     name="getTokenCategory",
      *     methods={"GET"})
      * @OA\Get(
      *     summary="Авторизоваться и получить токен",
@@ -74,7 +74,7 @@ class CategoryController extends AbstractController
         $username = $request->get('username');
         $response = $this->client->request(
             'POST',
-            'http://10.44.0.230:9191/api/category/login_check',[
+            $_ENV['URL_SERVICE_CATEGORY'].'/api/category/login_check',[
                 'json' =>['username'=>$username,'password'=>$password],
                 'headers' => [
                     'Content-Type' => 'application/json',]
@@ -84,7 +84,7 @@ class CategoryController extends AbstractController
     }
     /**
      * @Route("/api/category",
-     *     name="getAll",
+     *     name="getAllCategory",
      *     methods={"GET"})
      * @OA\Get(
      *     summary="Получить все категории в таблице",
@@ -103,7 +103,7 @@ class CategoryController extends AbstractController
     }
 
     /**
-     * @Route("/api/category/{id}",name="getByID",methods={"GET"})
+     * @Route("/api/category/{id}",name="getByIDCategory",methods={"GET"})
      * @param Request $request
      * @return Response
      * @OA\Get(
@@ -122,7 +122,7 @@ class CategoryController extends AbstractController
         }
     }
     /**
-     * @Route("/api/category",name="post",methods={"POST"})
+     * @Route("/api/category",name="postCategory",methods={"POST"})
      * @param Request $request
      * @return Response
      * @OA\RequestBody(
@@ -149,7 +149,7 @@ class CategoryController extends AbstractController
 
     }
     /**
-     * @Route("/api/category/{id}",name="patch",methods={"PUT"})
+     * @Route("/api/category/{id}",name="patchCategory",methods={"PUT"})
      * @param Request $request
      * @return Response
      * @OA\RequestBody(
@@ -177,7 +177,7 @@ class CategoryController extends AbstractController
         }
     }
     /**
-     * @Route("/api/category/{id}",name="delete",methods={"DELETE"})
+     * @Route("/api/category/{id}",name="deleteCategory",methods={"DELETE"})
      * @param Request $request
      * @return Response
      * @OA\Delete(
@@ -192,7 +192,7 @@ class CategoryController extends AbstractController
            $result = $this->repository->delete($id);
            $this->client->request(
                 'DELETE',
-                'http://10.44.0.229:9191/api/product/delete/'.$id,[
+               $_ENV['URL_SERVICE_PRODUCT'].'/api/product/category/delete/'.$id,[
                     'headers' => [
                         "Authorization" =>"Bearer ".$this->token
                     ]]
@@ -220,7 +220,7 @@ class CategoryController extends AbstractController
             if ($this->repository->countUpdateIncDcr($id, 'increase')) {
                 return new Response('Категория ' . $id . ' обновлена', 200);
             } else {
-                return new Response('Обновление категории не удалось', 418);
+                return new Response('Обновление категории не удалось. Возможно она не существует.', 418);
             }
         } catch (Exception $err) {
             return new Response($err->getMessage(),418);
@@ -271,7 +271,7 @@ class CategoryController extends AbstractController
                 //когда на сервисе Product будет реализована прямая выдача количества - изменить цикл
                 $response = $this->client->request(
                     'GET',
-                    'http://10.44.0.229:9191/api/product/search-cat/'.$category->getId(),[
+                    $_ENV['URL_SERVICE_PRODUCT'].'/api/product/category/'.$category->getId(),[
                     'headers' => [
                         "Authorization" =>"Bearer ".$this->token
                     ]]

@@ -36,12 +36,12 @@ class CategoryValidator extends ConstraintValidator
             throw new Exception('Поле productCount не содержит нуль или явно положительное число');
         }
 
-        if (!(array_key_exists('category', $fields))) {
-            throw new Exception('JSON не содержит поле category');
-        } else if (!(is_int($fields['category']))) {
-            throw new Exception('Поле category не содержит интерпретируемое целое число');
-        } else if (!($fields['category'] >= 0)) {
-            throw new Exception('Поле category не содержит нуль или явно положительное число');
+        if ((array_key_exists('category', $fields))) {
+            if (!(is_int($fields['category']))) {
+                throw new Exception('Поле category не содержит интерпретируемое целое число');
+            } else if (!($fields['category'] >= 0)) {
+                throw new Exception('Поле category не содержит нуль или явно положительное число');
+            }
         }
         return true;
     }

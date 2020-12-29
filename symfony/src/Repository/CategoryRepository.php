@@ -40,6 +40,7 @@ class CategoryRepository extends ServiceEntityRepository
 
             $category = new Category();
             $category->setName($fields['name']);
+            if(isset($fields['category']))
             $category->setCategory($fields['category']);
             $category->setProductCount($fields['productCount']);
             $this->_em->persist($category);
@@ -53,6 +54,7 @@ class CategoryRepository extends ServiceEntityRepository
 
             $category = $this->findOneBy(array('id' => $id));
             $category->setName($fields['name']);
+            if(isset($fields['category']))
             $category->setCategory($fields['category']);
             $category->setProductCount($fields['productCount']);
             $this->_em->flush();
@@ -87,6 +89,8 @@ class CategoryRepository extends ServiceEntityRepository
     {
 
             $category = $this->findOneBy(array('id' => $id));
+            if($category === null)
+                return false;
             if ($method == 'increase')
                 $one = 1;
             else if ($method == 'decrease' && $category->getProductCount() > 0)

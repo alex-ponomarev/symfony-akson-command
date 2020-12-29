@@ -53,47 +53,64 @@ class ProductRepository extends ServiceEntityRepository
 
     public function post( $fields)
     {
+        $categoryNumber = null;
         $product = new Product();
         $product->setName($fields['name']);
+        if(isset($fields['sku']))
         $product->setSku($fields['sku']);
+        if(isset($fields['price']))
         $product->setPrice($fields['price']);
+        if(isset($fields['description']))
         $product->setDescription($fields['description']);
-        $product->setCategory($fields['category']);
+        if(isset($fields['category'])) {
+            $product->setCategory($fields['category']);
+            $categoryNumber = $fields['category'];
+        }
         $this->_em->persist($product);
         $this->_em->flush();
-
+        return ['Новый продукт внесен в БД и существует под id = '.$product->getId(), 200, $categoryNumber];
     }
 
-    public function patch($fields)
+    public function patch($id,$fields)
     {
-        $product = $this->findBy(array('id' => $fields['id']));
+        $product = $this->findBy(array('id' => $id));
         $product->setName($fields['name']);
-        $product->setSku($fields['sku']);
-        $product->setPrice($fields['price']);
-        $product->setDescription($fields['description']);
-        $product->setCategory($fields['category']);
+        if(isset($fields['category']))
+            $product->setCategory($fields['category']);
+        if(isset($fields['sku']))
+            $product->setSku($fields['sku']);
+        if(isset($fields['price']))
+            $product->setPrice($fields['price']);
+        if(isset($fields['description']))
+            $product->setDescription($fields['description']);
         $this->_em->flush();
-
+        return ['Продукт '.$id.' успешно обновлен', 200];
     }
 
     public function delete($id)
     {
-        $product = $this->findBy(array('id' => $id));
-        $this->_em->remove($product[0]);
-        $this->_em->flush();
-        //уведомить категорию
-    }
-
-/*
-    public function productsRemountCategory($products,$trash,$_this)
-    {
-        foreach ($products as $product){
-            $product->setCategory($trash);
-            $entityManager = $_this->getDoctrine()->getManager();
-            $entityManager->flush();
+        $product = $this->findOneBy(array('id' => $id));
+        if($product !== null) {
+            $categoryNumber = $product->getCategory();
+            $this->_em->remove($product);
+            $this->_em->flush();
+            return ['Продукт ' . $id . ' был удален', 200, $categoryNumber];
+        }
+        else
+        {
+            return ['Продукта с id = ' . $id . ' не существует', 418, null];
         }
     }
-*/
+    public function productsRemountToSingularity($id)
+    {
+        $products = $this->findBy(array('category' => $id));
+        foreach ($products as $product){
+            $product->setCategory(0);
+        }
+        $this->_em->flush();
+        return ['Продукты с категорией '.$id.' были отправлены в Сингулярность', 200];
+    }
+
     // /**
     //  * @return Product[] Returns an array of Product objects
     //  */

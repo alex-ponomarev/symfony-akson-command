@@ -1,27 +1,23 @@
 <?php
 
 namespace App\Security;
-use Symfony\Contracts\HttpClient\HttpClientInterface;
+use Symfony\Component\HttpClient\CurlHttpClient;
 
 
 class Authorization
 {
-    private HttpClientInterface $client;
 
-    public function __construct(HttpClientInterface $client)
+    function loginToProductService($serviceURL)
     {
-        $this->client = $client;
-    }
-
-    function loginToProductService(){
-        $response = $this->client->request(
+        $client = new CurlHttpClient();
+        $response = $client->request(
             'GET',
-            'http://10.44.0.229:9191/api/login_check',[
+            $serviceURL.'/api/category/login_check',[
                 'json' =>['username'=>'akson','password'=>'akson'],
                 'headers' => [
                     'Content-Type' => 'application/json',]
             ]
-        );//залогиниться и принимать токен, когда яков доделает авторизацию
+        );
         $statusCode = $response->getStatusCode();
         if ($response->getStatusCode() == 200) {
             $content = json_decode($response->getContent(), true);

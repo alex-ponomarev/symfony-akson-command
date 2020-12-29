@@ -2,25 +2,26 @@
 
 namespace App\Controller;
 
+use ApiPlatform\Core\Annotation\ApiResource;
 use App\DataCrypt\Encoder;
-use App\Repository\CategoryRepository;
 use App\Security\Authorization;
-use App\Validator\CategoryValidator;
+use App\Validator\ProductValidator;
 use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 use App\Entity\Product;
 use App\Repository\ProductRepository;
-use App\Entity\Category;
-use Symfony\Component\Serializer\Encoder\JsonEncoder;
-use Symfony\Component\Serializer\Encoder\XmlEncoder;
-use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
-use Symfony\Component\Serializer\Serializer;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
+use OpenApi\Annotations as OA;
+use Nelmio\ApiDocBundle\Annotation\Model;
 
+/**
+ * @ApiResource()
+ * Class ProductController
+ * @package App\Controller
+ */
 class ProductController extends AbstractController
 {
     private $client;
@@ -53,11 +54,11 @@ class ProductController extends AbstractController
         $this ->encoder = $encoder;
         $this->repository = $repository;
         $this->authorization = $authorization;
-        $this->token =  $this->authorization->loginToProductService();
+        $this->token =  $this->authorization->loginToProductService($_ENV['URL_SERVICE_PRODUCT']);
 
     }
     /**
-     * @Route("/api/category/login_get_token/{username}&{password}",
+     * @Route("/api/product/login_get_token/{username}&{password}",
      *     name="getToken",
      *     methods={"GET"})
      * @OA\Get(
@@ -72,7 +73,7 @@ class ProductController extends AbstractController
         $username = $request->get('username');
         $response = $this->client->request(
             'POST',
-            'http://10.44.0.230:9191/api/category/login_check',[
+            $_ENV['URL_SERVICE_PRODUCT'].'/api/login_check',[
                 'json' =>['username'=>$username,'password'=>$password],
                 'headers' => [
                     'Content-Type' => 'application/json',]
@@ -105,7 +106,7 @@ class ProductController extends AbstractController
      * @param Request $request
      * @return Response
      * @OA\Get(
-     *     summary="Получить категорию по ID",
+     *     summary="Получить продукт по ID",
      *     tags={"Basic"})
      */
     public function productGetByID(Request $request): Response
@@ -120,86 +121,140 @@ class ProductController extends AbstractController
         }
     }
     /**
-     * @Route("/product/category/{id}",name="productInCategoryGetByID",methods={"GET"})
+     * @Route("/api/product/category/{id}",name="productInCategoryGetByID",methods={"GET"})
      * @param Request $request
-     * @return JsonResponse
+     * @return Response
+     * @OA\Get(
+     *     summary="Получить продукты по ID категории",
+     *     tags={"Basic"})
      */
     public function productInCategoryGetByID(Request $request): Response
     {
+        try {
         $id = $request->get('id');
         $this->validator->idValidation($id);
         $products = $this->repository->findByCategoryField($id);
-        return new Response($this->toJSON($products));
-    }
-    /**
-     * @Route("/product",name="productPost",methods={"POST"})
-     * @param Request $request
-     * @return Response
-     */
-    public function productPost(Request $request): Response
-    {
-        $data=$request->toArray();
-        $entityManager = $this->getDoctrine()->getManager();
-        $product = new Product();
-        $product->setName($data['name']);
-        $product->setSku($data['sku']);
-        $product->setPrice($data['price']);
-        $product->setDescription($data['description']);
-        $product->setCategory($data['category']);
-        $entityManager->persist($product);
-        $entityManager->flush();
-
-        return new Response(null,200);
-    }
-    /**
-     * @Route("/product",name="productPatch",methods={"PATCH","PUT"})
-     * @param Request $request
-     * @return Response
-     */
-    public function productPatch(Request $request): Response
-    {
-        $data=$request->toArray();
-        $entityManager = $this->getDoctrine()->getManager();
-        $product = $this->getDoctrine()->getRepository(Product::class)->findBy(array('id' => $data['id']));
-        $product->setName($data['name']);
-        $product->setSku($data['sku']);
-        $product->setPrice($data['price']);
-        $product->setDescription($data['description']);
-        $product->setCategory($data['category']);
-        $entityManager->flush();
-
-        return new Response(null,200);
-    }
-    /**
-     * @Route("/product/{id}",name="productDelete",methods={"DELETE"})
-     * @param Request $request
-     * @return Response
-     */
-    public function productDelete(Request $request): Response
-    {
-        $id = $request->get('id');
-        $entityManager = $this->getDoctrine()->getManager();
-        $product = $this->getDoctrine()->getRepository(Product::class)->findBy(array('id' => $id));
-        $entityManager->remove($product[0]);
-        $entityManager->flush();
-
-        return new Response(null,200);
-    }
-
-
-    public function productsChangeCategory($products,$trash,$_this)
-    {
-        foreach ($products as $product){
-            $product->setCategory($trash);
-            $entityManager = $_this->getDoctrine()->getManager();
-            $entityManager->flush();
+        return new Response($this->encoder->toJSON($products));
+        } catch (Exception $err) {
+            return new Response($err->getMessage(),418);
         }
     }
+    /**
+     * @Route("/api/product",name="post",methods={"POST"})
+     * @param Request $request
+     * @return Response
+     * @OA\RequestBody(
+     *     description="Returns the rewards of an user",
+     *     @OA\JsonContent(
+     *        type="Category",
+     *        ref=@Model(type=Product::class)
+     *     )
+     * )
+     * @OA\Post(
+     *     summary="Добавить новый продукт",
+     *     tags={"Basic"})
+     */
+    public function post(Request $request): Response
+    {
+        try {
+            $fields = json_decode($request->getContent(), true);
+            $this->validator->fieldsValidation($fields);
+            $result = $this->repository->post($fields);
+            $categoryNumber = $result[2];
+            if($categoryNumber!==null) {
+                $this->client->request(
+                    'PUT',
+                    $_ENV['URL_SERVICE_CATEGORY'] . '/api/category/count_increase/' . $categoryNumber, [
+                        'headers' => [
+                            "Authorization" => "Bearer " . $this->token
+                        ]]
+                );
+            }
+            return new Response($result[0], $result[1]);
+        } catch (Exception $err) {
+            return new Response($err->getMessage(),418);
+        }
 
-    function toJSON($obj){
-        $encoders = [new XmlEncoder(), new JsonEncoder()];
-        $normalizers = [new ObjectNormalizer()];
-        $serializer = new Serializer($normalizers, $encoders);
-        return $serializer->serialize($obj, 'json',['ignored_attributes' => ['product_relation','categoryParentRelation','productRelation']]);
     }
+    /**
+     * @Route("/api/product/{id}",name="patch",methods={"PUT"})
+     * @param Request $request
+     * @return Response
+     * @OA\RequestBody(
+     *     description="Returns the rewards of an user",
+     *     @OA\JsonContent(
+     *        type="array",
+     *        @OA\Items(ref=@Model(type=Product::class))
+     *     )
+     * )
+     * @OA\Put(
+     *     summary="Обновить поля Продукта заданного по ID",
+     *     tags={"Basic"})
+     */
+    public function patch(Request $request): Response
+    {
+        try {
+            $id = $request->get('id');
+            $this->validator->idValidation($id);
+            $fields = json_decode($request->getContent(), true);
+            $this->validator->fieldsValidation($fields);
+            $result = $this->repository->patch($id,$fields);
+            return new Response($result[0], $result[1]);
+        } catch (Exception $err) {
+            return new Response($err->getMessage(),418);
+        }
+    }
+    /**
+     * @Route("/api/product/{id}",name="delete",methods={"DELETE"})
+     * @param Request $request
+     * @return Response
+     * @OA\Delete(
+     *     summary="Удаляет продукт по ID",
+     *     tags={"Basic"})
+     */
+    public function delete(Request $request): Response
+    {
+        try {
+            $id = $request->get('id');
+            $this->validator->idValidation($id);
+            $result = $this->repository->delete($id);
+            $categoryNumber = $result[2];
+            if($categoryNumber!==null) {
+                $this->client->request(
+                    'PUT',
+                    $_ENV['URL_SERVICE_CATEGORY'] . '/api/category/count_decrease/' . $categoryNumber, [
+                        'headers' => [
+                            "Authorization" => "Bearer " . $this->token
+                        ]]
+                );
+            }
+            return new Response($result[0], $result[1]);
+        } catch (Exception $err) {
+            return new Response($err->getMessage(),418);
+        }
+        //уведомить категорию
+    }
+    /**
+     * @Route("/api/product/category/delete/{id}",name="remountToSingularity",methods={"DELETE"})
+     * @param Request $request
+     * @return Response
+     * @OA\Delete(
+     *     summary="Перебазирует продукты удалённой категории в служебную категорию 'Сингулярность'",
+     *     tags={"Advanced"})
+     */
+    public function remountToSingularity(Request $request): Response
+    {
+        try {
+            $id = $request->get('id');
+            $this->validator->idValidation($id);
+            $result = $this->repository->productsRemountToSingularity($id);
+            return new Response($result[0], $result[1]);
+        } catch (Exception $err) {
+            return new Response($err->getMessage(),418);
+        }
+        //уведомить категорию
+    }
+
+
+
 }
