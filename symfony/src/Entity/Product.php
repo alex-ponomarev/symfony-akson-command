@@ -5,6 +5,7 @@ namespace App\Entity;
 use App\Repository\ProductRepository;
 use Doctrine\ORM\Mapping as ORM;
 use OpenApi\Annotations as OA;
+use Symfony\Component\Serializer\Annotation\Groups;
 /**
  * @ORM\EntityListeners({"App\EventListener\ProductChangedNotifier"})
  * @ORM\Entity(repositoryClass=ProductRepository::class)
@@ -22,24 +23,28 @@ class Product
     /**
      * @ORM\Column(type="string", length=255)
      * @OA\Property(type="string", maxLength=255)
+     * @Groups({"elastica"})
      */
     private $name;
 
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
      * @OA\Property(type="string", maxLength=255)
+     * @Groups({"elastica"})
      */
     private $sku;
 
     /**
-     * @ORM\Column(type="integer", nullable=true)
-     * @OA\Property(type="integer")
+     * @ORM\Column(type="double", nullable=true)
+     * @OA\Property(type="double")
+     * @Groups({"elastica"})
      */
     private $price;
 
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
      * @OA\Property(type="string", maxLength=255)
+     * @Groups({"elastica"})
      */
     private $description;
 

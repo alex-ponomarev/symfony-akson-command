@@ -24,8 +24,6 @@ class CategoryValidator extends ConstraintValidator
     {
         if (!(array_key_exists('name', $fields))) {
             throw new Exception('JSON не содержит поле name');
-        } else if (!(preg_match('/^([А-ЯЁ\s][а-яё\s]+|[A-Z\s][a-z\s]+)$/iu', $fields['name']))) {
-            throw new Exception('Поле name не соответствует формату: допустимы только буквы, недопустимо сочетание разных алфавитов');
         }
 
         if (!(array_key_exists('productCount', $fields))) {

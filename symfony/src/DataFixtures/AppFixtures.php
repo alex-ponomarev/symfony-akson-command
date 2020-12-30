@@ -21,7 +21,7 @@ class AppFixtures extends Fixture
             }
             $category->setProductCount(0);
             $category->setCategory($i);
-            $category->persist($category);
+            $manager->persist($category);
         }
 
         for ($i = 0; $i < 20; $i++) {

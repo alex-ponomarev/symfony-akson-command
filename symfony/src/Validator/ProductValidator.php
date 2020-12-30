@@ -39,13 +39,6 @@ class ProductValidator extends ConstraintValidator
             }
         }
 
-        if ((array_key_exists('sku', $fields))) {
-            if (!(preg_match('/^(?=.*\d)(?=.*[a-z])[a-z\d]{5}$/iu', $fields['sku']))) {
-                throw new Exception('Поле sku не соответствует формату.');
-            }
-        }
-
-
         return true;
     }
 
