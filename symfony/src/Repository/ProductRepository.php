@@ -73,7 +73,7 @@ class ProductRepository extends ServiceEntityRepository
 
     public function patch($id,$fields)
     {
-        $product = $this->findBy(array('id' => $id));
+        $product = $this->findOneBy(array('id' => $id));
         $product->setName($fields['name']);
         if(isset($fields['category']))
             $product->setCategory($fields['category']);
