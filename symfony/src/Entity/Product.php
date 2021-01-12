@@ -35,8 +35,8 @@ class Product
     private $sku;
 
     /**
-     * @ORM\Column(type="double", nullable=true)
-     * @OA\Property(type="double")
+     * @ORM\Column(type="float", nullable=true)
+     * @OA\Property(type="float")
      * @Groups({"elastica"})
      */
     private $price;

@@ -16,6 +16,7 @@ use App\Repository\ProductRepository;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use OpenApi\Annotations as OA;
 use Nelmio\ApiDocBundle\Annotation\Model;
+use App\FileManager\AksonFileManager;
 
 /**
  * @ApiResource()
@@ -42,14 +43,20 @@ class ProductController extends AbstractController
      * @var Authorization
      */
     private Authorization $authorization;
+    /**
+     * @var AksonFileManager
+     */
+    private AksonFileManager $flmanager;
 
     public function __construct(HttpClientInterface $client,
                                 ProductRepository $repository,
                                 ProductValidator $validator,
                                 Encoder $encoder,
-                                Authorization $authorization)
+                                Authorization $authorization,
+                                AksonFileManager $flmanager)
     {
         $this->client = $client;
+        $this->flmanager = $flmanager;
         $this ->validator = $validator;
         $this ->encoder = $encoder;
         $this->repository = $repository;
@@ -57,6 +64,20 @@ class ProductController extends AbstractController
         $this->token =  $this->authorization->loginToProductService($_ENV['URL_SERVICE_PRODUCT']);
 
     }
+
+    /**
+     * @Route("/api/product/elasticload",
+     *     name="elasticload",
+     *     methods={"GET"})
+     * @OA\Get(
+     *     summary="Запуск логики эластика",
+     *     tags={"Advanced"})
+     */
+    public function elasticload()
+    {
+         $this->flmanager->startProcessFile();
+    }
+
     /**
      * @Route("/api/product/login_get_token/{username}&{password}",
      *     name="getToken",
@@ -254,6 +275,7 @@ class ProductController extends AbstractController
         }
         //уведомить категорию
     }
+
 
 
 

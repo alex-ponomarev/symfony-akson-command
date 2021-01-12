@@ -110,7 +110,21 @@ class ProductRepository extends ServiceEntityRepository
         $this->_em->flush();
         return ['Продукты с категорией '.$id.' были отправлены в Сингулярность', 200];
     }
-
+    public function fileProductsPost($productFields)
+    {
+        foreach ($productFields as $field) {
+            $product = new Product();
+            $product->setName($field['name']);
+            if (isset($fields['sku']))
+                $product->setSku($field['sku']);
+            if (isset($fields['price']))
+                $product->setPrice($field['price']);
+            if (isset($fields['description']))
+                $product->setDescription($field['description']);
+            $this->_em->persist($product);
+        }
+        $this->_em->flush();
+    }
     // /**
     //  * @return Product[] Returns an array of Product objects
     //  */
