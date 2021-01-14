@@ -125,6 +125,10 @@ class ProductRepository extends ServiceEntityRepository
         }
         $this->_em->flush();
     }
+    public function checkDBConnection(): bool
+    {
+        return $this->_em->getConnection()->isConnected();
+    }
     // /**
     //  * @return Product[] Returns an array of Product objects
     //  */

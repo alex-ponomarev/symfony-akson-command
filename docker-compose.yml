@@ -53,3 +53,29 @@ services:
       - 9200:9200
     networks:
       - 172.31.0.0
+  zookeeper:
+    hostname: zookeeper
+    container_name: zookeeper
+    image: wurstmeister/zookeeper:latest
+    expose:
+      - "2181"
+    networks:
+      - 172.31.0.0
+  kafka:
+      hostname: kafka
+      container_name: kafka
+      image: wurstmeister/kafka:latest
+      ports:
+        - "9090:9090"
+        - "9091:9091"
+        - "9092:9092"
+        - "9093:9093"
+        - "9094:9094"
+      depends_on:
+        - zookeeper
+      environment:
+        KAFKA_CREATE_TOPICS: notifications:1:1
+        KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+        KAFKA_LISTENERS: PLAINTEXT://kafka:9092
+      networks:
+        - 172.31.0.0

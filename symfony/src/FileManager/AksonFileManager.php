@@ -24,10 +24,12 @@ class AksonFileManager
     public function startProcessFile()
     {
         $productFields = $this->explodeFile($this->findAksonFile());
-        // TODO: проверить состояние доступности БД
-        $this->repository->fileProductsPost($productFields);
-        // TODO: проверить состояние доступности Elastic
-        $this->elasticAdd($productFields);
+        if ($this->repository->checkDBConnection()) {
+            $this->repository->fileProductsPost($productFields);
+            if ($this->checkElasticConnection()) {
+                $this->elasticAdd($productFields);
+            }
+        }
     }
     function findAksonFile()
     {
@@ -73,7 +75,14 @@ class AksonFileManager
             $i++;
         }
     }
-
+    private function checkElasticConnection(){
+        $client = new CurlHttpClient();
+        $response = $client->request(
+            'GET',
+            'http://'.'172.31.0.1'.':9200'
+        );
+       return $response->getStatusCode()==200;
+    }
     /* private function elasticAdd($productFields){
         $client = new CurlHttpClient();
         $i = 0;
