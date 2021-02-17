@@ -5,38 +5,38 @@ networks:
     external: true
 
 services:
-  basic_service:
+  megaservice_service:
     build:
       dockerfile: docker/Dockerfile.dev
       context: .
     restart: always
     volumes:
       - ./symfony:/var/www/symfony
-    container_name: basic_service
-    hostname: basic_service
+    container_name: megaservice_service
+    hostname: megaservice_service
     environment:
-      - REDIS_ADDR=redis://basic_redis
-      - DATABASE_URL=postgres://test:test@basic_postgres:5432/test?serverVersion=12&charset=utf8
+      - REDIS_ADDR=redis://megaservice_redis
+      - DATABASE_URL=postgres://test:test@megaservice_postgres:5432/test?serverVersion=12&charset=utf8
 
     ports:
     - 9191:9000
     links:
-      - basic_postgres
-      - basic_redis
+      - megaservice_postgres
+      - megaservice_redis
     networks:
       - 172.31.0.0
 
-  basic_redis:
+  megaservice_redis:
     image: redis:5.0.7
-    hostname: basic_redis
-    container_name: basic_redis
+    hostname: megaservice_redis
+    container_name: megaservice_redis
     networks:
       - 172.31.0.0
 
-  basic_postgres:
+  megaservice_postgres:
     image: postgres:12.4-alpine
-    hostname: basic_postgres
-    container_name: basic_postgres
+    hostname: megaservice_postgres
+    container_name: megaservice_postgres
     restart: always
     ports:
       - 5432
@@ -45,10 +45,11 @@ services:
     environment:
       - POSTGRES_USER=test
       - POSTGRES_PASSWORD=test
-  basic_elasticsearch:
+
+  megaservice_elasticsearch:
     image: sebp/elk:792
-    hostname: basic_elasticsearch
-    container_name: basic_elasticsearch
+    hostname: megaservice_elasticsearch
+    container_name: megaservice_elasticsearch
     ports:
       - 9200:9200
     networks:

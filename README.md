@@ -11,3 +11,4 @@
     7. Для использования API сервиса необходима авторизация. 
        Авторизация доступна в документации: логин/пароль akson/akson
     8. Запустить тесты в терминале: docker exec -ti basic_service php bin/phpunit --bootstrap vendor/autoload.php tests
+    9. kafka - http://172.31.0.1:9200/product/_doc/
